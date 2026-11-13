@@ -30,10 +30,11 @@ A group conversation in the Chat view: the members, the owner name from the add-
 | Path | What |
 |---|---|
 | `duplex_broker/` | The broker and its Home Assistant add-on (`duplex_broker`, port 8790). Options and routes: `duplex_broker/DOCS.md`. |
-| `crates/duplex/` | The `duplex` binary. `duplex mcp` is the MCP server a Claude Code session or a Codex task runs: fourteen `bridge_*` tools, the wake, the turn state and usage-limit readers. `duplex setup` registers it, `duplex owner` runs owner commands, `duplex compat check` compares the installed Claude Code and Codex with the releases this build was reviewed against. |
+| `crates/duplex/` | The `duplex` binary. `duplex mcp` is the MCP server a Claude Code session or a Codex task runs: fourteen `bridge_*` tools, the wake, the turn state and usage-limit readers. `duplex setup` registers it, `duplex owner` runs owner commands, `duplex compat check` compares the installed Claude Code and Codex with the releases this build was reviewed against. `duplex opencode` (also built as the windowless `duplex-opencode.exe`) holds OpenCode sessions. |
 | `crates/duplex-proto/` | What `duplex` and the waker share: the broker client, IDs, the wake line and the contract types. |
 | `crates/duplex-waker/` | An optional Windows service that starts a closed Claude session or Codex thread when a usage-limit resume is waiting for it. `crates/duplex-waker/README.md`. |
 | `adapters/codex/` | `duplex_codex.py`, an adapter for Codex threads in its own `codex app-server`, with all four send modes. |
+| `docs/opencode.md` | `duplex opencode`, the adapter for OpenCode sessions in the OpenCode desktop app's server, with all four send modes. |
 | `docs/owner-api.md` | The owner API, for the panel and any other client. |
 | `docs/adapter-contract.md` | The interface between the broker, the adapters and the waker, with the test that proves each clause. |
 | `docs/DESIGN.md`, `docs/decisions.md`, `docs/feasibility.md` | Design, decisions and what each runtime allows. |
@@ -91,6 +92,17 @@ python adapters/codex/duplex_codex.py
 ```
 
 It uses `adapter.json` from `duplex setup`, and finds `codex` from `DUPLEX_CODEX`, the npm package or the PATH.
+
+### The OpenCode adapter (optional)
+
+`duplex opencode` holds one OpenCode session per entry in `~/.duplex-chat/opencode.json` (`{"sessions": [{"title", "cwd", "model": "<provider>/<model>"}]}`) in the OpenCode desktop app's own server, with all four send modes and every permission allowed. On Windows:
+
+```
+cargo install --path crates/duplex --locked
+powershell -NoProfile -File crates\duplex\opencode-install.ps1
+```
+
+That registers the hidden logon task "Duplex OpenCode". Nothing answers while the app is closed; messages wait in the broker. Details: `docs/opencode.md`.
 
 ### The model member and the ChatGPT connector (optional)
 

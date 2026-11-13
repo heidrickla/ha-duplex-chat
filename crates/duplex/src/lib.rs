@@ -7,6 +7,7 @@ pub mod config;
 pub mod identity;
 pub mod log;
 pub mod mcp;
+pub mod opencode;
 pub mod owner;
 pub mod paging;
 pub mod policy;

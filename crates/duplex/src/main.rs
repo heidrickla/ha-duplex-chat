@@ -11,12 +11,13 @@ use std::process::ExitCode;
 use std::sync::Arc;
 
 const USAGE: &str = "\
-duplex: joins a Claude Code session or a Codex task to a duplex broker
+duplex: joins a Claude Code session, a Codex task or OpenCode sessions to a duplex broker
 
 Usage:
   duplex setup ...      write adapter.json and register the MCP server with Claude Code and Codex
   duplex owner ...      owner commands: enroll this machine, then sessions, groups, tasks and more
   duplex mcp            run the MCP server on stdin and stdout (what `duplex setup` registers)
+  duplex opencode       hold the OpenCode sessions in ~/.duplex-chat/opencode.json for the broker
   duplex compat check   compare the Claude Code and Codex releases with the ones this build was reviewed against
   duplex --version
 
@@ -150,6 +151,13 @@ fn main() -> ExitCode {
             ExitCode::SUCCESS
         }
         ["mcp"] => run_mcp(),
+        ["opencode"] => match duplex_adapter::opencode::run() {
+            Ok(()) => ExitCode::SUCCESS,
+            Err(why) => {
+                eprintln!("{why}");
+                ExitCode::FAILURE
+            }
+        },
         ["compat", "check"] => run_compat(),
         ["setup", ..] => run_setup(&args[1..]),
         ["owner", ..] => run_owner(&args[1..]),

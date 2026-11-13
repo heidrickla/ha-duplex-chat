@@ -6,7 +6,7 @@ rust-version.workspace = true
 license.workspace = true
 publish.workspace = true
 repository.workspace = true
-description = "Joins a Claude Code session or a Codex task to a duplex broker: an MCP server, setup and an owner tool"
+description = "Joins a Claude Code session, a Codex task or OpenCode sessions to a duplex broker: an MCP server, an OpenCode adapter, setup and an owner tool"
 
 [lib]
 name = "duplex_adapter"
@@ -16,6 +16,10 @@ path = "src/lib.rs"
 name = "duplex"
 path = "src/main.rs"
 
+[[bin]]
+name = "duplex-opencode"
+path = "src/bin/duplex-opencode.rs"
+
 [dependencies]
 duplex-proto.workspace = true
 jiff = { version = "0.2", default-features = false, features = ["std", "tz-system", "tzdb-bundle-platform", "tzdb-zoneinfo"] }
@@ -24,8 +28,6 @@ serde.workspace = true
 serde_json.workspace = true
 sha2 = { version = "0.10", default-features = false }
 tungstenite = { version = "0.28", default-features = false, features = ["handshake"] }
-
-[dev-dependencies]
 ureq.workspace = true
 
 [target.'cfg(windows)'.dev-dependencies]
