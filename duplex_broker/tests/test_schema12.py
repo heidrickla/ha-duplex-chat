@@ -172,3 +172,35 @@ def test_a_copied_schema_12_database_adopts_owner_and_renames_model(tmp_path: Pa
         assert queue == "job-queue"
         assert check.execute("PRAGMA integrity_check").fetchone()[0] == "ok"
     store.close()
+
+
+def test_a_database_that_never_sent_a_notice_adopts_the_owner_of_its_groups(tmp_path: Path) -> None:
+    source = schema_12_database(tmp_path)
+    with sqlite3.connect(source) as raw:
+        # No notices conversation, and the service owns more direct conversations than the owner.
+        raw.execute("DELETE FROM conversation_members WHERE conversation_id = 'broker-dm'")
+        raw.execute("DELETE FROM conversations WHERE id = 'broker-dm'")
+        raw.execute(
+            "INSERT INTO conversations (id, kind, title, owner, mode, dm_binding_id, created_at) VALUES "
+            "('queue-dm-2', 'direct', 'job-queue', 'job-queue', 'user_directed', 'model-1', 5), "
+            "('team', 'group', 'Team', 'legacy-owner', 'user_directed', NULL, 6)"
+        )
+        raw.execute("INSERT INTO conversation_members VALUES ('team', 'user', 'legacy-owner', 'owner')")
+    store = Store(source, owner="wrong-default")
+    assert store.owner == "legacy-owner"
+    assert {c.id for c in store.conversations_for(Actor.user("legacy-owner"))} == {"model-dm", "team"}
+    store.close()
+
+
+def test_a_database_with_no_notice_and_no_group_adopts_whoever_owns_the_most(tmp_path: Path) -> None:
+    source = schema_12_database(tmp_path)
+    with sqlite3.connect(source) as raw:
+        raw.execute("DELETE FROM conversation_members WHERE conversation_id = 'broker-dm'")
+        raw.execute("DELETE FROM conversations WHERE id = 'broker-dm'")
+        raw.execute(
+            "INSERT INTO conversations (id, kind, title, owner, mode, dm_binding_id, created_at) VALUES "
+            "('chat-dm', 'direct', 'ChatGPT', 'legacy-owner', 'user_directed', 'chatgpt-1', 5)"
+        )
+    store = Store(source, owner="wrong-default")
+    assert store.owner == "legacy-owner"
+    store.close()

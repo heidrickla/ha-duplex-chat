@@ -821,13 +821,31 @@ class Store:
             "UPDATE session_bindings SET native_id = 'chatgpt' WHERE provider = 'chatgpt' AND native_id = ?",
             (LEGACY_CONNECTOR_NATIVE,),
         )
-        row = db.execute(
-            "SELECT owner FROM conversations WHERE kind = 'direct' AND title = ? "
-            "ORDER BY created_at, id LIMIT 1",
-            (BROKER_TITLE,),
-        ).fetchone()
-        adopted = self.owner if row is None else cast(str, row["owner"])
-        db.execute("INSERT OR REPLACE INTO meta (key, value) VALUES ('owner_id', ?)", (adopted,))
+        db.execute(
+            "INSERT OR REPLACE INTO meta (key, value) VALUES ('owner_id', ?)", (self._legacy_owner(db),)
+        )
+
+    def _legacy_owner(self, db: sqlite3.Connection) -> str:
+        """The owner of a database from before schema 13, read from what it holds: the notices conversation
+        if one was ever opened, else the first group (only the owner makes groups; a service owns direct
+        conversations too), else whoever owns the most conversations, else the configured id."""
+        for query, args in (
+            (
+                "SELECT owner FROM conversations WHERE kind = 'direct' AND dm_binding_id = ?"
+                " ORDER BY created_at, id LIMIT 1",
+                (BROKER_BINDING_ID,),
+            ),
+            ("SELECT owner FROM conversations WHERE kind = 'group' ORDER BY created_at, id LIMIT 1", ()),
+            (
+                "SELECT owner FROM conversations GROUP BY owner"
+                " ORDER BY COUNT(*) DESC, MIN(created_at), owner LIMIT 1",
+                (),
+            ),
+        ):
+            row = db.execute(query, args).fetchone()
+            if row is not None:
+                return cast(str, row["owner"])
+        return self.owner
 
     def record_refusal(self, source: str, what: str, reason: str, now: float | None = None) -> None:
         """Keep one refusal for a day; the reason is the broker's own text, never a request's content."""
