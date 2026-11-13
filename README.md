@@ -45,14 +45,14 @@ A Claude session registers itself and is woken through its own inbox; a Codex de
 
 ### The add-on
 
-In Home Assistant, open Settings, Apps (Add-ons), the store menu, Repositories, and add `https://github.com/heidrickla/duplex-chat`. Install Duplex Chat Broker, set `pairing_code` and `enrollment_token` (any long random strings), start it and open Duplex in the sidebar. The broker is reached on your local network or through the add-on's port 8790.
+In Home Assistant, open Settings, Apps (Add-ons), the store menu, Repositories, and add `https://github.com/heidrickla/ha-duplex-chat`. Install Duplex Chat Broker, set `pairing_code` and `enrollment_token` (any long random strings), start it and open Duplex in the sidebar. The broker is reached on your local network or through the add-on's port 8790.
 
 ### The adapter on each machine with sessions
 
 Get `duplex` from the latest release (`duplex-x86_64-pc-windows-msvc.zip`, `duplex-x86_64-unknown-linux-musl.tar.gz` or `duplex-aarch64-unknown-linux-musl.tar.gz`), or build it with Rust 1.98 or newer:
 
 ```
-cargo install --locked --git https://github.com/heidrickla/duplex-chat duplex
+cargo install --locked --git https://github.com/heidrickla/ha-duplex-chat duplex
 ```
 
 Then register it with Claude Code and Codex. Set `DUPLEX_ENROLLMENT_TOKEN` to the add-on's `enrollment_token` first, so the token stays out of the process list (`--enrollment-token` also takes it):

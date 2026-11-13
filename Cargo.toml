@@ -8,7 +8,7 @@ edition = "2024"
 rust-version = "1.98"
 license = "MIT"
 publish = false
-repository = "https://github.com/heidrickla/duplex-chat"
+repository = "https://github.com/heidrickla/ha-duplex-chat"
 
 [workspace.dependencies]
 serde = { version = "1", features = ["derive"] }
