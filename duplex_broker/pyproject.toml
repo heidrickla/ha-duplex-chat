@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "duplex-broker"
-version = "0.10.1"
+version = "0.11.0"
 description = "Conversation broker for duplex-chat: group and direct chat with live Claude Code and Codex sessions"
 requires-python = ">=3.12"
 license = "MIT"

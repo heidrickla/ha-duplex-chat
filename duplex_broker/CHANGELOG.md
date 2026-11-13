@@ -1,3 +1,8 @@
+## 0.11.0
+
+- OpenCode sessions join conversations: `duplex opencode` (built also as the windowless `duplex-opencode.exe`, run by the logon task `crates/duplex/opencode-install.ps1` registers) holds one OpenCode session per entry in `~/.duplex-chat/opencode.json` in the OpenCode desktop app's own server, found again from its `service.json` after every relaunch. Each registers as provider `opencode` with all four send modes, its turn state and every permission allowed, and answers through the broker; peer messages are refused. `docs/opencode.md`.
+- Schema 14: the binding provider CHECK admits `opencode`; every row is kept.
+
 ## 0.10.1
 
 - A database from before schema 13 that never opened a broker-notices conversation adopts its owner from its first group, or from whoever owns the most conversations, so the owner's conversations stay listed after the upgrade.

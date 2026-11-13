@@ -766,7 +766,7 @@ fn a_fresh_profile_goes_from_nothing_to_a_registered_session_and_the_owner_comma
     };
     let sessions = owner(&["owner", "sessions"]);
     assert!(
-        sessions.contains("codex Codex fresh active adapter 0.10.1"),
+        sessions.contains("codex Codex fresh active adapter 0.11.0"),
         "{sessions}"
     );
     assert!(owner(&["owner", "sessions", "--json"]).contains("\"title\": \"Codex fresh\""));
