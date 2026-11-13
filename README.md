@@ -102,7 +102,7 @@ cargo install --path crates/duplex --locked
 powershell -NoProfile -File crates\duplex\opencode-install.ps1
 ```
 
-That registers the hidden logon task "Duplex OpenCode". Nothing answers while the app is closed; messages wait in the broker. Details: `docs/opencode.md`.
+Or take `duplex-opencode.exe` from the release's `duplex-opencode-x86_64-pc-windows-msvc.zip` and pass it as `-Binary <path>`. That registers the hidden logon task "Duplex OpenCode". Nothing answers while the app is closed; messages wait in the broker. Details: `docs/opencode.md`.
 
 ### The model member and the ChatGPT connector (optional)
 

@@ -1,7 +1,7 @@
 name: Release
 
 # A tag v<version> builds the duplex binary for Windows and for Linux on x86_64 and aarch64 (musl, one
-# static file), and duplex-waker for Windows, and attaches them to the release with their checksums.
+# static file), and duplex-opencode and duplex-waker for Windows, and attaches them to the release with their checksums.
 on:
   push:
     tags: ["v*"]
@@ -62,7 +62,7 @@ jobs:
           mkdir dist
           out="target/${{ matrix.target }}/release"
           if [ "${{ matrix.archive }}" = zip ]; then
-            for bin in duplex duplex-waker; do
+            for bin in duplex duplex-opencode duplex-waker; do
               pwsh -NoProfile -Command "Compress-Archive -Path '$out/$bin.exe' -DestinationPath 'dist/$bin-${{ matrix.target }}.zip'"
             done
           else
@@ -97,5 +97,5 @@ jobs:
           ls -l
           gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --verify-tag \
             --title "$GITHUB_REF_NAME" \
-            --notes "Binaries for the duplex adapter and the Windows waker. Changes: duplex_broker/CHANGELOG.md." \
+            --notes "Binaries for the duplex adapter, the Windows OpenCode adapter and the Windows waker. Changes: duplex_broker/CHANGELOG.md." \
             *
