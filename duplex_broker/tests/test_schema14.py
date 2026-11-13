@@ -98,6 +98,5 @@ def test_an_opencode_session_registers_on_the_upgraded_database(tmp_path: Path) 
         assert store_module.adapter_behind(binding, "0.11.0") is False
     store.close()
     with sqlite3.connect(path) as db:
-        assert json.loads(db.execute("SELECT adapter FROM session_bindings WHERE provider = 'opencode'").fetchone()[0])[
-            "version"
-        ] == "0.11.0"
+        row = db.execute("SELECT adapter FROM session_bindings WHERE provider = 'opencode'").fetchone()
+    assert json.loads(row[0])["version"] == "0.11.0"
