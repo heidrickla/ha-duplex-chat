@@ -82,6 +82,10 @@ impl Log {
     }
 }
 
+/// How long a starting adapter waits for the one before it to let go of `opencode.lock`: a task
+/// restarted at once can start while the stopped process is still exiting.
+const LOCK_WAIT: Duration = Duration::from_secs(20);
+
 /// Holds `opencode.lock` for the life of the process; a second adapter cannot open it (Windows).
 fn single_instance(path: &PathBuf) -> std::io::Result<std::fs::File> {
     let mut options = std::fs::OpenOptions::new();
@@ -91,7 +95,15 @@ fn single_instance(path: &PathBuf) -> std::io::Result<std::fs::File> {
         use std::os::windows::fs::OpenOptionsExt;
         options.share_mode(0);
     }
-    options.open(path)
+    let deadline = std::time::Instant::now() + LOCK_WAIT;
+    loop {
+        match options.open(path) {
+            Err(_) if std::time::Instant::now() < deadline => {
+                std::thread::sleep(Duration::from_millis(250));
+            }
+            other => return other,
+        }
+    }
 }
 
 /// Runs the adapter until every session is retired. An error is why it could not start.
@@ -99,8 +111,12 @@ pub fn run() -> Result<(), String> {
     let dir = config_dir();
     let _ = std::fs::create_dir_all(&dir);
     let log = Log::new(Some(dir.join("opencode.log")));
-    let _lock = single_instance(&dir.join("opencode.lock"))
-        .map_err(|e| format!("another duplex opencode runs ({})", e.kind()))?;
+    let _lock = single_instance(&dir.join("opencode.lock")).map_err(|e| {
+        format!(
+            "another duplex opencode holds opencode.lock after {} s ({e})",
+            LOCK_WAIT.as_secs()
+        )
+    })?;
     let adapter_path = default_config_path();
     let adapter = AdapterConfig::load(&adapter_path)?.ok_or_else(|| {
         format!(
@@ -143,4 +159,26 @@ pub fn run() -> Result<(), String> {
         let _ = thread.join();
     }
     Ok(())
+}
+
+#[cfg(all(test, windows))]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn a_restarted_adapter_waits_for_the_stopping_one_to_let_go_of_the_lock() {
+        let dir = std::env::temp_dir().join(format!("duplex-oc-lock-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let path = dir.join("opencode.lock");
+        let held = single_instance(&path).unwrap();
+        let releaser = std::thread::spawn(move || {
+            std::thread::sleep(Duration::from_millis(600));
+            drop(held);
+        });
+        let started = std::time::Instant::now();
+        assert!(single_instance(&path).is_ok());
+        assert!(started.elapsed() >= Duration::from_millis(500));
+        releaser.join().unwrap();
+        let _ = std::fs::remove_dir_all(&dir);
+    }
 }
