@@ -474,6 +474,31 @@ fn liveness_is_checked_again_just_before_the_launch() {
 }
 
 #[test]
+fn a_request_with_an_unsafe_id_is_refused_for_its_id_whatever_this_machine_holds() {
+    let rig = Rig::new("unsafe-id-first");
+    let workspace = rig.scratch.dir("workspace");
+    let mut flag = claude_request("d1", &workspace);
+    flag["native_id"] = json!("not a plain id");
+    let broker = FakeBroker::start();
+    broker.list(&[flag]);
+    let http = HttpBroker::new(&broker.url, TOKEN);
+    let mut launcher = FakeLauncher::default();
+    let procs = FakeProcs::real();
+    // No records folder: the id is refused before anything is read for it.
+    let missing = rig.scratch.path().join("no-sessions-folder");
+    let mut waker = Waker::new(&http, &mut launcher, &procs, &FakeTools, missing, &rig.log);
+    waker.tick();
+    drop(waker);
+    assert!(launcher.starts.is_empty());
+    let started = broker.started();
+    assert_eq!(started[0].1["ok"], false);
+    assert_eq!(
+        started[0].1["detail"],
+        "request native_id is not a plain id"
+    );
+}
+
+#[test]
 fn an_unestablished_session_is_skipped_and_reported() {
     let rig = Rig::new("unestablished");
     let workspace = rig.scratch.dir("workspace");

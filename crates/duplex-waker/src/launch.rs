@@ -68,8 +68,9 @@ fn plain_model(value: &str) -> bool {
             .all(|c| c.is_ascii_alphanumeric() || matches!(c, '-' | '.' | '_' | '[' | ']'))
 }
 
-/// The plan for a request, or why there is none.
-pub fn plan(request: &Request, tools: &dyn Tools) -> Result<Plan, String> {
+/// Refuses a request whose ids are not plain ids. Nothing on this machine is read for
+/// such a request, so its refusal is the same everywhere.
+pub fn check_ids(request: &Request) -> Result<(), String> {
     for (name, value) in [
         ("id", &request.id),
         ("binding_id", &request.binding_id),
@@ -80,6 +81,12 @@ pub fn plan(request: &Request, tools: &dyn Tools) -> Result<Plan, String> {
             return Err(format!("request {name} is not a plain id"));
         }
     }
+    Ok(())
+}
+
+/// The plan for a request, or why there is none.
+pub fn plan(request: &Request, tools: &dyn Tools) -> Result<Plan, String> {
+    check_ids(request)?;
     if request.reason != "limit_resume" {
         return Err(format!("reason {:?} is not handled", request.reason));
     }

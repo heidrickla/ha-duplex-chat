@@ -120,6 +120,10 @@ impl<'a> Waker<'a> {
             request.title.as_deref().unwrap_or("")
         );
         let route = route_for(&request.provider);
+        if let Err(why) = launch::check_ids(request) {
+            self.log.line(&format!("{names}: not started: {why}"));
+            return Report::new(false, route, &why);
+        }
         if let Err(why) = self.closed(request) {
             self.log.line(&format!("{names}: not started: {why}"));
             return Report::new(false, route, &why);
