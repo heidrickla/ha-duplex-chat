@@ -1,0 +1,33 @@
+# Runtime data: conversation database, event log, attachments
+/runtime/
+*.db
+*.db-wal
+*.db-shm
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.pytest-tmp/
+
+# Rust
+/target/
+
+# Node
+node_modules/
+dist/
+
+# Generated provider schemas
+/scratch/
+
+# Agent files stay local
+CLAUDE.md
+AGENTS.md
+CONTRIBUTING.md
+.cursorrules
+
+# Publication scan literals stay local
+/tools/pubscan.local.txt

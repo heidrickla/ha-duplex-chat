@@ -1,0 +1,63 @@
+configuration:
+  pairing_code:
+    name: Pairing code
+    description: A chat client presents this once to enroll and receives its own token. Empty disables enrollment.
+  enrollment_token:
+    name: Adapter enrollment token
+    description: Session adapters present this once to register a session. Empty disables registration.
+  owner_name:
+    name: Owner display name
+    description: How the panel and the members' prompts name you. Empty shows Owner.
+  services:
+    name: Services
+    description: Named services that post status data into their own direct conversations through /api/service/NAME/notify and list sessions through /api/service/NAME/sessions. Each entry needs a name and a token.
+  waker_token:
+    name: Waker token
+    description: The waker presents this to list the closed sessions that have a scheduled send waiting and to report each start. Empty turns the waker routes off.
+  device_token_grace:
+    name: Rotated token grace (seconds)
+    description: How long a chat client's previous token keeps working after it rotates.
+  log_level:
+    name: Log level
+  model_url:
+    name: Model endpoint URL
+    description: Base URL of an OpenAI-compatible chat endpoint. Empty removes the model member.
+  model_name:
+    name: Model name
+    description: Model name sent to the endpoint.
+  model_tools_name:
+    name: Model name with actions
+    description: Model name sent when actions are on. Empty uses the model name.
+  model_member_title:
+    name: Model member title
+    description: The name the model member goes by in the chat.
+  model_timeout:
+    name: Model timeout (seconds)
+    description: How long a message waits for the endpoint before the reply says it timed out.
+  model_actions:
+    name: Model runs Home Assistant actions
+    description: On, every tool call the model returns is run through Assist with no approval, reaching every entity exposed to Assist. Needs the MCP Server integration enabled in Home Assistant. Off, tool calls are shown as text.
+  model_no_thinking:
+    name: Turn the model's thinking off
+    description: On, each request carries chat_template_kwargs with enable_thinking false, which llama.cpp and vLLM templates honor. Leave it off for servers that reject unknown request keys.
+  wake_timeout:
+    name: Wake timeout (seconds)
+    description: How long a delivery handed to a session waits to be read before the first re-wake.
+  rewake_interval:
+    name: Re-wake interval (seconds)
+    description: Seconds between re-wakes, and from the last re-wake to closing the delivery as uncertain.
+  rewake_limit:
+    name: Re-wakes
+    description: Re-wakes sent before an unread delivery is closed as uncertain and the next message goes out.
+  hold_after:
+    name: Hold after
+    description: Unread closures in a row before delivery to that session is held until it reads or registers again.
+  connector_url:
+    name: ChatGPT connector origin
+    description: The public HTTPS origin ChatGPT reaches the connector at. Empty turns the connector off.
+  connector_member_title:
+    name: ChatGPT member title
+    description: The name the ChatGPT connector goes by in the chat. No other session may take it.
+network:
+  8790/tcp: Chat clients and session adapters
+  8791/tcp: ChatGPT connector

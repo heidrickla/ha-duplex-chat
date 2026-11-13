@@ -1,0 +1,1 @@
+{"runtime": "codex", "version": "0.167.1", "source": "~/.codex/sessions/YYYY/MM/DD/rollout-*-<thread id>.jsonl", "constructed": true, "note": "Synthetic: task_started, token_count of the codex bucket and task_complete, with example ids."}

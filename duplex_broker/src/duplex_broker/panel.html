@@ -1,0 +1,1752 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Duplex</title>
+<style>
+:root {
+  color-scheme: dark;
+  --page: #0d0d0d;
+  --surface: #1a1a19;
+  --raised: #222220;
+  --text: #f0efec;
+  --text-2: #c3c2b7;
+  --muted: #898781;
+  --grid: #2c2c2a;
+  --axis: #383835;
+  --ring: rgba(255, 255, 255, 0.10);
+  --s1: #3987e5;
+  --s2: #d95926;
+  --s3: #199e70;
+  --s4: #c98500;
+  --good: #0ca30c;
+  --warn: #fab219;
+  --bad: #d03b3b;
+  --quiet: #5f5e5a;
+  --track: #2a2a28;
+}
+:root[data-theme="light"] {
+  color-scheme: light;
+  --page: #f9f9f7;
+  --surface: #fcfcfb;
+  --raised: #f0efec;
+  --text: #0b0b0b;
+  --text-2: #52514e;
+  --muted: #898781;
+  --grid: #e1e0d9;
+  --axis: #c3c2b7;
+  --ring: rgba(11, 11, 11, 0.10);
+  --s1: #2a78d6;
+  --s2: #eb6834;
+  --s3: #1baf7a;
+  --s4: #eda100;
+  --quiet: #b5b4ad;
+  --track: #ecebe6;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; }
+body {
+  background: var(--page);
+  color: var(--text);
+  font: 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif;
+  padding: 16px;
+}
+main { max-width: 1180px; margin: 0 auto; display: grid; gap: 16px; }
+header { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+header h1 { font-size: 20px; font-weight: 600; margin: 0; }
+.mark { width: 28px; height: 28px; flex: none; }
+.mark rect { fill: var(--s1); }
+.mark path { fill: none; stroke: #fff; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.chips { display: flex; gap: 8px; flex-wrap: wrap; margin-left: auto; align-items: center; }
+.chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  border: 1px solid var(--ring); border-radius: 999px; padding: 3px 10px;
+  color: var(--text-2); font-size: 12px; background: var(--surface);
+}
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); flex: none; display: inline-block; }
+.dot.good { background: var(--good); }
+.dot.warn { background: var(--warn); }
+.dot.bad { background: var(--bad); }
+.dot.info { background: var(--quiet); }
+button, select {
+  font: inherit; color: var(--text-2); background: var(--surface);
+  border: 1px solid var(--ring); border-radius: 8px; padding: 5px 12px; cursor: pointer;
+}
+button:hover, select:hover { background: var(--raised); color: var(--text); }
+.seg { display: inline-flex; border: 1px solid var(--ring); border-radius: 8px; overflow: hidden; }
+.seg button { border: 0; border-radius: 0; padding: 5px 12px; }
+.seg button + button { border-left: 1px solid var(--ring); }
+.seg button[aria-pressed="true"] { background: var(--raised); color: var(--text); }
+.toolbar { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 12px; flex-wrap: wrap; }
+.card {
+  background: var(--surface); border: 1px solid var(--ring); border-radius: 14px;
+  padding: 16px 18px; min-width: 0;
+}
+.card h2 { font-size: 15px; font-weight: 600; margin: 0; }
+.card .sub { color: var(--muted); font-size: 12px; margin: 2px 0 10px; }
+.kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+.kpi .label { color: var(--text-2); font-size: 13px; display: flex; align-items: center; gap: 6px; }
+.kpi .value { font-size: 30px; font-weight: 600; margin-top: 2px; font-variant-numeric: tabular-nums; }
+.kpi .value small { font-size: 14px; color: var(--text-2); font-weight: 500; margin-left: 4px; }
+.kpi .note { color: var(--muted); font-size: 12px; margin-top: 2px; }
+.grid2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; }
+.chart { position: relative; }
+.chart svg { display: block; width: 100%; overflow: visible; }
+svg text { fill: var(--muted); font-size: 11px; font-variant-numeric: tabular-nums; }
+svg text.ink { fill: var(--text); font-weight: 600; }
+svg text.ink2 { fill: var(--text-2); }
+.tip {
+  position: absolute; pointer-events: none; z-index: 2;
+  background: var(--raised); border: 1px solid var(--ring); border-radius: 8px;
+  padding: 8px 10px; font-size: 12px; color: var(--text-2); white-space: nowrap;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35); display: none; max-width: 420px;
+}
+.tip .t { color: var(--muted); margin-bottom: 4px; }
+.tip .row { display: flex; align-items: center; gap: 8px; }
+.tip .row b { color: var(--text); font-size: 14px; }
+.tip .row span { overflow: hidden; text-overflow: ellipsis; }
+.tip .key { width: 10px; height: 10px; border-radius: 2px; flex: none; }
+.legend { display: flex; gap: 6px 16px; color: var(--text-2); font-size: 12px; margin: 0 0 6px; flex-wrap: wrap; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend .sw { width: 10px; height: 10px; border-radius: 2px; }
+.sessions { display: grid; gap: 0; }
+.session {
+  display: grid; grid-template-columns: 14px minmax(0, 1.4fr) minmax(0, 1fr) 150px; gap: 4px 12px;
+  align-items: center; padding: 8px 0; border-top: 1px solid var(--grid);
+}
+.session:first-child { border-top: 0; }
+.session .who { min-width: 0; }
+.session .title { color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.session .ws { color: var(--muted); font: 11px ui-monospace, "Cascadia Mono", Consolas, monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.session .seen { color: var(--text-2); font-size: 12px; display: flex; align-items: center; gap: 6px; }
+.session .seen small { color: var(--muted); white-space: nowrap; }
+.mini { height: 8px; border-radius: 4px; background: var(--track); display: flex; gap: 2px; overflow: hidden; }
+.mini i { display: block; height: 100%; }
+.mini-note { color: var(--muted); font-size: 11px; margin-top: 3px; font-variant-numeric: tabular-nums; }
+.pdot { width: 10px; height: 10px; border-radius: 3px; }
+details.more { margin-top: 8px; }
+details.more > summary { cursor: pointer; color: var(--muted); font-size: 12px; }
+.convs { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; }
+.conv {
+  border: 1px solid var(--ring); border-radius: 10px; padding: 10px 12px; background: var(--page);
+  text-align: left; cursor: pointer; display: grid; gap: 4px; color: var(--text-2); min-width: 0;
+}
+.conv:hover { background: var(--raised); }
+.conv[aria-expanded="true"] { border-color: var(--s1); }
+.conv .ct { color: var(--text); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.conv .cm { font-size: 12px; color: var(--muted); display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.conv .members { display: flex; gap: 4px; }
+.tag { font-size: 11px; border: 1px solid var(--ring); border-radius: 999px; padding: 0 7px; color: var(--text-2); }
+.transcript { margin-top: 12px; border-top: 1px solid var(--grid); padding-top: 10px; }
+.transcript h3 { font-size: 14px; margin: 0 0 6px; font-weight: 600; }
+.msg { display: grid; grid-template-columns: 170px minmax(0, 1fr); gap: 2px 12px; padding: 6px 0; border-top: 1px solid var(--grid); }
+.msg:first-of-type { border-top: 0; }
+.msg .from { display: flex; align-items: center; gap: 6px; color: var(--text-2); font-size: 12px; }
+.msg .at { color: var(--muted); font-size: 11px; grid-column: 1; }
+.msg .body { grid-row: 1 / span 2; grid-column: 2; color: var(--text); white-space: pre-wrap; overflow-wrap: anywhere; font-size: 13px; max-height: 7.5em; overflow: hidden; cursor: pointer; }
+.msg .body.full { max-height: none; }
+table { border-collapse: collapse; margin-top: 4px; font-size: 12px; font-variant-numeric: tabular-nums; width: 100%; }
+th, td { padding: 4px 14px 4px 0; text-align: right; white-space: nowrap; }
+th:first-child, td:first-child { text-align: left; }
+td.l, th.l { text-align: left; }
+td.clip { max-width: 260px; overflow: hidden; text-overflow: ellipsis; }
+th { color: var(--muted); font-weight: normal; }
+.tablewrap { max-height: 320px; overflow: auto; }
+.empty { color: var(--muted); padding: 24px 0; text-align: center; }
+.gate { text-align: center; padding: 48px 16px; color: var(--text-2); }
+.gate b { color: var(--text); display: block; font-size: 16px; margin-bottom: 6px; }
+footer { color: var(--muted); font-size: 12px; display: flex; gap: 18px; flex-wrap: wrap; }
+input, textarea {
+  font: inherit; color: var(--text); background: var(--page);
+  border: 1px solid var(--ring); border-radius: 8px; padding: 6px 10px; min-width: 0;
+}
+textarea { width: 100%; resize: vertical; }
+button.primary { background: var(--s1); color: #fff; border-color: transparent; }
+button.primary:hover { background: var(--s1); color: #fff; filter: brightness(1.1); }
+button.danger { color: var(--bad); }
+button:disabled { opacity: 0.5; cursor: default; }
+button.small { padding: 2px 8px; font-size: 12px; }
+.notice {
+  position: sticky; top: 8px; z-index: 5; border: 1px solid var(--bad); border-radius: 10px;
+  background: var(--surface); color: var(--text); padding: 8px 12px; cursor: pointer;
+}
+.notice.ok { border-color: var(--good); }
+.inline { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 12px; }
+.err { color: var(--bad); margin-top: 8px; min-height: 1.2em; }
+.row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.row .grow { flex: 1; min-width: 0; }
+.chat { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 16px; align-items: start; }
+.chat-list .row { justify-content: space-between; margin-bottom: 8px; }
+.chat-item {
+  display: grid; gap: 2px; width: 100%; text-align: left; border: 1px solid transparent; border-radius: 10px;
+  padding: 8px 10px; background: transparent; color: var(--text-2);
+}
+.chat-item:hover { background: var(--raised); }
+.chat-item[aria-current="true"] { border-color: var(--s1); background: var(--raised); }
+.chat-item .ct { color: var(--text); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chat-item .cm { font-size: 12px; color: var(--muted); display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.chat-main { display: grid; gap: 10px; min-height: 320px; }
+.cv-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.cv-head h2 { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cv-back { display: none; }
+.cv-tools { display: grid; gap: 8px; border-top: 1px solid var(--grid); padding-top: 8px; }
+.cv-tools .row > .label { color: var(--muted); font-size: 12px; min-width: 64px; }
+.collab { color: var(--text-2); font-size: 12px; }
+.collab-form { display: grid; gap: 6px; margin-top: 6px; }
+.collab-form .row label { color: var(--muted); font-size: 12px; display: inline-flex; gap: 6px; align-items: center; }
+.collab-form input[type="number"] { width: 80px; }
+.cv-msgs { display: grid; gap: 8px; max-height: 56vh; overflow: auto; padding: 4px 2px; align-content: start; }
+.bubble { border: 1px solid var(--ring); border-radius: 12px; padding: 8px 12px; background: var(--page); max-width: 88%; min-width: 0; }
+.bubble.mine { justify-self: end; background: var(--raised); }
+.bubble .who { display: flex; gap: 6px; align-items: center; color: var(--text-2); font-size: 12px; }
+.bubble .who small { color: var(--muted); }
+.bubble .txt { white-space: pre-wrap; overflow-wrap: anywhere; margin-top: 4px; }
+.bubble .to { color: var(--muted); font-size: 12px; margin-top: 4px; }
+.dels { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; align-items: center; }
+.dels .tag { display: inline-flex; gap: 5px; align-items: center; }
+.sysline { color: var(--muted); font-size: 12px; text-align: center; }
+.detail { margin-top: 6px; font-size: 12px; color: var(--text-2); }
+.detail table { margin: 0; }
+.redirect { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-top: 6px; }
+.compose { display: grid; gap: 6px; border-top: 1px solid var(--grid); padding-top: 10px; }
+.compose .to { display: flex; gap: 6px 12px; flex-wrap: wrap; align-items: center; font-size: 13px; }
+.compose .to label { display: inline-flex; gap: 5px; align-items: center; color: var(--text-2); }
+.compose-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.compose-row label { color: var(--muted); font-size: 12px; display: inline-flex; gap: 6px; align-items: center; }
+.compose-row .hint { color: var(--muted); font-size: 12px; flex: 1; min-width: 120px; }
+.newform { display: grid; gap: 12px; max-width: 560px; }
+.newform fieldset { border: 1px solid var(--ring); border-radius: 10px; display: grid; gap: 8px; padding: 10px 12px; }
+.newform legend { color: var(--text-2); padding: 0 6px; }
+.picks { display: grid; gap: 4px; }
+.picks label { display: inline-flex; gap: 6px; align-items: center; color: var(--text-2); }
+.task { border-top: 1px solid var(--grid); padding: 10px 0; display: grid; gap: 4px; }
+.task:first-child { border-top: 0; }
+.task .tt { color: var(--text); overflow-wrap: anywhere; }
+.task .tm { color: var(--muted); font-size: 12px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.task pre { margin: 4px 0 0; white-space: pre-wrap; overflow-wrap: anywhere; font: 12px ui-monospace, "Cascadia Mono", Consolas, monospace; color: var(--text-2); }
+@media (max-width: 860px) {
+  .chat { grid-template-columns: minmax(0, 1fr); }
+  .chat[data-pane="list"] .chat-main, .chat[data-pane="conv"] .chat-list { display: none; }
+  .cv-back { display: inline-block; }
+  .bubble { max-width: 100%; }
+  .grid2 { grid-template-columns: minmax(0, 1fr); }
+  .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .session { grid-template-columns: 14px minmax(0, 1fr) 120px; }
+  .session .ctr { grid-column: 2 / span 2; }
+  .msg { grid-template-columns: minmax(0, 1fr); }
+  .msg .body { grid-row: auto; grid-column: 1; }
+}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <svg class="mark" viewBox="0 0 28 28" aria-hidden="true">
+      <rect width="28" height="28" rx="7"></rect>
+      <path d="M6.5 9.5h10a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-5l-3 2.5v-2.5a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2zM18.5 13h3a2 2 0 0 1 2 2v3.5a2 2 0 0 1-2 2v2l-2.5-2h-2.5"></path>
+    </svg>
+    <h1>Duplex</h1>
+    <div class="seg" id="tabs" role="group" aria-label="View" hidden>
+      <button type="button" data-tab="chat">Chat</button>
+      <button type="button" data-tab="tasks">Tasks</button>
+      <button type="button" data-tab="status">Status</button>
+      <button type="button" data-tab="system">System</button>
+    </div>
+    <div class="chips">
+      <span class="chip" id="chip-live"><span class="dot"></span><span>Loading</span></span>
+      <span class="chip" id="chip-stuck"><span class="dot"></span><span>Deliveries</span></span>
+      <span class="chip" id="chip-model"><span class="dot"></span><span>Model</span></span>
+      <button id="theme" type="button" aria-label="Switch theme">Light</button>
+    </div>
+  </header>
+
+  <section class="card gate" id="gate" hidden>
+    <b>Open this page from the Home Assistant sidebar</b>
+    <span>Outside ingress, pair this browser with the broker's pairing code.</span>
+    <form class="inline" id="pair-form">
+      <input id="pair-code" type="password" autocomplete="off" placeholder="Pairing code" aria-label="Pairing code">
+      <button type="submit" class="primary">Pair</button>
+    </form>
+    <div class="err" id="pair-err" role="alert"></div>
+  </section>
+
+  <div class="notice" id="notice" role="status" hidden></div>
+
+  <div id="body" hidden style="display:grid;gap:16px">
+    <div class="view" id="view-chat" hidden>
+      <div class="chat" id="chat" data-pane="list">
+        <aside class="card chat-list" aria-label="Conversations">
+          <div class="row"><h2>Chats</h2><button type="button" id="chat-new" class="primary small">New</button></div>
+          <div id="chat-items"></div>
+          <details class="more" id="chat-archived-wrap"><summary id="chat-archived-sum"></summary><div id="chat-archived"></div></details>
+        </aside>
+        <section class="card chat-main" id="chat-main" aria-label="Conversation">
+          <div id="chat-empty" class="empty">Select a conversation or start a new one.</div>
+          <form class="newform" id="chat-newform" hidden></form>
+          <div id="chat-conv" hidden>
+            <div class="cv-head" id="cv-head"></div>
+            <div class="cv-tools" id="cv-tools"></div>
+            <div class="cv-msgs" id="cv-msgs" tabindex="0"></div>
+            <form class="compose" id="cv-compose">
+              <div class="to" id="cv-to"></div>
+              <textarea id="cv-text" rows="3" placeholder="Message" aria-label="Message" maxlength="60000"></textarea>
+              <div class="compose-row">
+                <label>Send as <select id="cv-send-mode"></select></label>
+                <span class="hint" id="cv-hint"></span>
+                <button type="submit" class="primary" id="cv-send">Send</button>
+              </div>
+            </form>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <div class="view" id="view-tasks" hidden>
+      <section class="card" aria-labelledby="tasks-title">
+        <div class="row"><h2 id="tasks-title" class="grow">Delegated tasks</h2>
+          <div class="seg" id="tasks-scope" role="group" aria-label="Tasks shown">
+            <button type="button" data-open="1">Open</button>
+            <button type="button" data-open="0">All</button>
+          </div>
+        </div>
+        <div class="sub">Work one session handed another. Open tasks and finished ones whose result is unread are listed first.</div>
+        <div id="task-list"></div>
+      </section>
+    </div>
+
+    <div class="view" id="view-system" hidden>
+      <section class="card" aria-labelledby="ref-title">
+        <h2 id="ref-title">Refusals</h2>
+        <div class="sub">What the broker refused in the last day, and why.</div>
+        <div class="tablewrap"><table id="ref-table"></table></div>
+      </section>
+      <section class="card" aria-labelledby="lim-title">
+        <h2 id="lim-title">Usage-limit resumes</h2>
+        <div class="sub">Messages scheduled to wake a session after a usage limit, and what became of each.</div>
+        <div class="tablewrap"><table id="lim-table"></table></div>
+      </section>
+      <section class="card" aria-labelledby="wak-title">
+        <h2 id="wak-title">Waker starts</h2>
+        <div class="sub">The waker's recent attempts to open a closed session.</div>
+        <div class="tablewrap"><table id="wak-table"></table></div>
+      </section>
+      <section class="card" aria-labelledby="sub-title">
+        <h2 id="sub-title">Connector subscriptions</h2>
+        <div class="sub">The ChatGPT connector's event subscriptions, with renewals and the last event each answered.</div>
+        <div class="tablewrap"><table id="sub-table"></table></div>
+      </section>
+      <section class="card" aria-labelledby="dev-title">
+        <h2 id="dev-title">Devices</h2>
+        <div class="sub">Enrolled devices and when each last called the broker. A disabled device is refused.</div>
+        <div class="tablewrap"><table id="dev-table"></table></div>
+      </section>
+    </div>
+
+    <div class="view" id="view-status" style="display:grid;gap:16px" hidden>
+    <section class="kpis" aria-label="Now">
+      <div class="card kpi"><div class="label">Sessions live</div><div class="value" id="k-live">–</div><div class="note" id="k-live-note"></div></div>
+      <div class="card kpi"><div class="label">Messages, last 7 days</div><div class="value" id="k-msgs">–</div><div class="note" id="k-msgs-note"></div></div>
+      <div class="card kpi"><div class="label">Open deliveries</div><div class="value" id="k-open">–</div><div class="note" id="k-open-note"></div></div>
+      <div class="card kpi"><div class="label">Median time to read</div><div class="value" id="k-read">–</div><div class="note" id="k-read-note"></div></div>
+    </section>
+
+    <section class="card" aria-labelledby="sess-title">
+      <h2 id="sess-title">Sessions</h2>
+      <div class="sub">Registered Claude Code and Codex sessions and the model member, with their last poll or heartbeat and every delivery they were sent.</div>
+      <div class="legend" id="state-legend"></div>
+      <div class="sessions" id="sessions"></div>
+      <details class="more" id="quiet-wrap"><summary id="quiet-sum"></summary><div class="sessions" id="quiet"></div></details>
+      <details class="more" id="retired-wrap"><summary id="retired-sum"></summary><div class="sessions" id="retired"></div></details>
+    </section>
+
+    <section class="card" aria-labelledby="open-title" id="open-card">
+      <h2 id="open-title">Open deliveries</h2>
+      <div class="sub">Messages waiting for a session to claim, accept or read them. Over 10 minutes is flagged.</div>
+      <div class="tablewrap"><table id="open-table"></table></div>
+    </section>
+
+    <div class="toolbar">
+      <span>Range</span>
+      <div class="seg" id="range" role="group" aria-label="Range">
+        <button type="button" data-days="7">7 days</button>
+        <button type="button" data-days="30">30 days</button>
+        <button type="button" data-days="90">90 days</button>
+      </div>
+    </div>
+
+    <section class="card" aria-labelledby="msg-title">
+      <h2 id="msg-title">Messages per day</h2>
+      <div class="sub">Every message posted, by sender.</div>
+      <div class="legend" id="msg-legend"></div>
+      <div class="chart" id="msg-wrap"><svg id="msg" height="220" role="img" aria-label="Messages per day by sender"></svg><div class="tip" id="msg-tip"></div></div>
+      <details class="more"><summary>Every day</summary><div class="tablewrap"><table id="msg-table"></table></div></details>
+    </section>
+
+    <div class="grid2">
+      <section class="card" aria-labelledby="del-title">
+        <h2 id="del-title">Deliveries per day</h2>
+        <div class="sub">Each message's copy to each recipient session, by where it ended.</div>
+        <div class="legend" id="del-legend"></div>
+        <div class="chart" id="del-wrap"><svg id="del" height="200" role="img" aria-label="Deliveries per day by outcome"></svg><div class="tip" id="del-tip"></div></div>
+      </section>
+      <section class="card" aria-labelledby="read-title">
+        <h2 id="read-title">Time to read</h2>
+        <div class="sub" id="read-sub">From posting to the session reading or answering it.</div>
+        <div class="chart" id="read-wrap"><svg id="read" height="200" role="img" aria-label="Deliveries by time to read"></svg><div class="tip" id="read-tip"></div></div>
+      </section>
+    </div>
+
+    <section class="card" aria-labelledby="conv-title">
+      <h2 id="conv-title">Conversations</h2>
+      <div class="sub">Groups and direct conversations, most recent first. Select one for its last messages.</div>
+      <div class="convs" id="convs"></div>
+      <details class="more" id="archived-wrap"><summary id="archived-sum"></summary><div class="convs" id="archived" style="margin-top:8px"></div></details>
+      <div class="transcript" id="transcript" hidden></div>
+    </section>
+
+    </div>
+  </div>
+
+  <footer>
+    <span>JSON: api/status?days=N</span>
+    <span id="f-broker"></span>
+    <span id="f-updated"></span>
+  </footer>
+</main>
+<script>
+"use strict";
+const NS = "http://www.w3.org/2000/svg";
+// fixed categorical order: owner, Claude, Codex, model member; anything else folds into Other
+const SENDERS = [["user", "--s1", "Owner"], ["claude", "--s2", "Claude"], ["codex", "--s3", "Codex"], ["model", "--s4", "Model"], ["other", "--quiet", "Other"]];
+const SENDER = Object.fromEntries(SENDERS.map((s) => [s[0], s]));
+// delivery state, coloured as state
+const OUTCOMES = [
+  ["read", "--good", "Read or answered", ["consumed", "responded"]],
+  ["open", "--s1", "Open", ["queued", "dispatching", "accepted"]],
+  ["uncertain", "--warn", "Uncertain", ["uncertain"]],
+  ["failed", "--bad", "Failed", ["failed"]],
+  ["cancelled", "--quiet", "Cancelled", ["cancelled"]],
+];
+const OUTCOME_OF = {};
+for (const o of OUTCOMES) for (const s of o[3]) OUTCOME_OF[s] = o;
+const LIVE_S = 90, STUCK_S = 600;
+const state = { doc: null, days: 30, openConv: null, transcript: null, expanded: new Set(), csrf: null, tab: "chat" };
+const $ = (id) => document.getElementById(id);
+
+// Every broker route this page calls, by name. {x} is filled from the call's arguments.
+const ROUTES = {
+  status: ["GET", "api/status"],
+  session: ["GET", "api/session"],
+  pair: ["POST", "api/pair"],
+  sessions: ["GET", "api/sessions"],
+  release: ["POST", "api/sessions/{id}/release"],
+  retire: ["POST", "api/sessions/{id}/retire"],
+  conversations: ["GET", "api/conversations"],
+  createGroup: ["POST", "api/conversations"],
+  openDirect: ["POST", "api/direct-conversations"],
+  conversation: ["GET", "api/conversations/{id}"],
+  setMode: ["POST", "api/conversations/{id}/mode"],
+  collaborate: ["POST", "api/conversations/{id}/collaboration"],
+  stopCollaboration: ["DELETE", "api/conversations/{id}/collaboration"],
+  archive: ["POST", "api/conversations/{id}/archive"],
+  restore: ["POST", "api/conversations/{id}/restore"],
+  addMember: ["POST", "api/conversations/{id}/members"],
+  control: ["POST", "api/conversations/{id}/control"],
+  events: ["GET", "api/conversations/{id}/events"],
+  post: ["POST", "api/conversations/{id}/messages"],
+  message: ["GET", "api/messages/{id}"],
+  redirect: ["POST", "api/deliveries/{id}/redirect"],
+  tasks: ["GET", "api/tasks"],
+  task: ["GET", "api/tasks/{id}"],
+  cancelTask: ["POST", "api/tasks/{id}/cancel"],
+  refusals: ["GET", "api/refusals"],
+  limits: ["GET", "api/limits"],
+  wakerStarts: ["GET", "api/waker/starts"],
+  subscriptions: ["GET", "api/subscriptions"],
+  devices: ["GET", "api/devices"],
+  device: ["POST", "api/devices/{id}/{switch}"],
+};
+
+// One call to the broker: args are the route's {x} values plus `query` and `body`. A write carries the
+// CSRF token from api/session; a 403 refetches it once, since the broker may have restarted.
+async function call(name, args, retried) {
+  const a = args || {};
+  const [method, template] = ROUTES[name];
+  let path = template.replace(/\{(\w+)\}/g, (m, key) => encodeURIComponent(a[key]));
+  if (a.query) path += "?" + new URLSearchParams(a.query);
+  const init = { method, cache: "no-store", credentials: "same-origin", headers: {} };
+  if (method !== "GET" && name !== "pair") {
+    if (!state.csrf) await loadSession();
+    init.headers["x-csrf-token"] = state.csrf;
+  }
+  if (a.body !== undefined) {
+    init.headers["content-type"] = "application/json";
+    init.body = JSON.stringify(a.body);
+  }
+  const resp = await fetch(path, init);
+  if (resp.status === 401) { const e = new Error("401"); e.auth = true; throw e; }
+  if (resp.status === 403 && method !== "GET" && name !== "pair" && !retried) {
+    state.csrf = null;
+    return call(name, args, true);
+  }
+  if (!resp.ok) {
+    let detail = "";
+    try { const j = await resp.json(); detail = j.detail || j.error || ""; } catch (e) { /* no body */ }
+    throw new Error(detail || path + " " + resp.status);
+  }
+  return resp.status === 204 ? null : resp.json();
+}
+let noticeTimer = 0;
+function notify(message, ok) {
+  const box = $("notice");
+  box.textContent = message;
+  box.className = "notice" + (ok ? " ok" : "");
+  box.hidden = false;
+  clearTimeout(noticeTimer);
+  noticeTimer = setTimeout(() => { box.hidden = true; }, ok ? 4000 : 12000);
+}
+$("notice").addEventListener("click", () => { $("notice").hidden = true; });
+
+function store(key, value) { try { localStorage.setItem("duplex-" + key, value); } catch (e) { /* storage blocked */ } }
+function recall(key) { try { return localStorage.getItem("duplex-" + key); } catch (e) { return null; } }
+
+function el(tag, attrs, parent) {
+  const node = document.createElementNS(NS, tag);
+  for (const k in attrs) node.setAttribute(k, attrs[k]);
+  if (parent) parent.appendChild(node);
+  return node;
+}
+function text(parent, x, y, s, cls, anchor) {
+  const t = el("text", { x, y, "text-anchor": anchor || "start" }, parent);
+  if (cls) t.setAttribute("class", cls);
+  t.textContent = s;
+  return t;
+}
+function clear(node) { while (node.firstChild) node.removeChild(node.firstChild); }
+function css(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+function html(tag, content, cls) {
+  const n = document.createElement(tag);
+  if (content !== undefined && content !== null) n.textContent = content;
+  if (cls) n.className = cls;
+  return n;
+}
+
+const dtf = {
+  full: new Intl.DateTimeFormat(undefined, { weekday: "short", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }),
+  md: new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric" }),
+  day: new Intl.DateTimeFormat(undefined, { weekday: "short", month: "short", day: "numeric", year: "numeric" }),
+};
+function span(sec) {
+  sec = Math.max(0, Math.round(sec));
+  const d = Math.floor(sec / 86400), h = Math.floor(sec % 86400 / 3600), m = Math.floor(sec % 3600 / 60), s = sec % 60;
+  if (d) return d + " d " + h + " h";
+  if (h) return h + " h " + m + " min";
+  if (m) return m + " min" + (m < 10 && s ? " " + s + " s" : "");
+  return s + " s";
+}
+function ago(t) { return t ? span(state.doc.now - t) + " ago" : "never"; }
+function num(v) { return v === null || v === undefined ? "–" : Number(v).toLocaleString(); }
+function niceTicks(lo, hi, count) {
+  if (!(hi > lo)) { const pad = Math.abs(lo) * 0.1 || 1; lo -= pad; hi += pad; }
+  const raw = (hi - lo) / count;
+  const mag = Math.pow(10, Math.floor(Math.log10(raw)));
+  const err = raw / mag;
+  const step = (err >= 7.5 ? 10 : err >= 3.5 ? 5 : err >= 1.5 ? 2 : 1) * mag;
+  const t0 = Math.floor(lo / step) * step, t1 = Math.ceil(hi / step) * step;
+  const ticks = [];
+  for (let v = t0; v <= t1 + step / 2; v += step) ticks.push(+v.toFixed(10));
+  return { lo: t0, hi: t1, ticks, step };
+}
+function tickLabel(v, step) {
+  if (Math.abs(v) >= 1e3) return (v / 1e3).toFixed(step >= 1e3 ? 0 : 1) + "K";
+  return v.toFixed(Math.max(0, Math.ceil(-Math.log10(step))));
+}
+function tipShow(tip, wrap, x, y, title, rows) {
+  clear(tip);
+  tip.appendChild(html("div", title, "t"));
+  for (const r of rows) {
+    const row = html("div", null, "row");
+    if (r.key) { const k = html("i", null, "key"); k.style.background = r.key; row.appendChild(k); }
+    if (r.value) row.appendChild(html("b", r.value));
+    row.appendChild(html("span", r.label));
+    tip.appendChild(row);
+  }
+  tip.style.display = "block";
+  const w = tip.offsetWidth, h = tip.offsetHeight, W = wrap.clientWidth;
+  let left = x + 14;
+  if (left + w > W) left = x - w - 14;
+  tip.style.left = Math.max(0, left) + "px";
+  tip.style.top = Math.max(0, y - h / 2) + "px";
+}
+function tipHide(tip) { tip.style.display = "none"; }
+// an SVG read mid-layout can report a few pixels; such a width falls back to the default
+function widthOf(svg, fallback) { const w = svg.clientWidth; return w > 200 ? w : fallback; }
+function scaleOf(svg, W) { return W / (svg.getBoundingClientRect().width || W); }
+function roundTop(x, y0, w, y1, r) {
+  r = Math.min(r, Math.abs(y0 - y1), w / 2);
+  return "M" + x + " " + y0 + "V" + (y1 + r) + "Q" + x + " " + y1 + " " + (x + r) + " " + y1 + "H" + (x + w - r) + "Q" + (x + w) + " " + y1 + " " + (x + w) + " " + (y1 + r) + "V" + y0 + "Z";
+}
+function yAxis(svg, yt, y, L, W, R) {
+  for (const v of yt.ticks) {
+    el("line", { x1: L, x2: W - R, y1: y(v), y2: y(v), stroke: v === 0 ? css("--axis") : css("--grid"), "stroke-width": 1 }, svg);
+    text(svg, L - 8, y(v) + 4, tickLabel(v, yt.step), null, "end");
+  }
+}
+function setChip(id, cls, label) {
+  const chip = $(id);
+  chip.querySelector(".dot").className = "dot " + cls;
+  chip.querySelector("span:last-child").textContent = label;
+}
+function legend(id, series) {
+  const box = $(id);
+  clear(box);
+  for (const s of series) {
+    const item = html("span");
+    const sw = html("i", null, "sw");
+    sw.style.background = "var(" + s[1] + ")";
+    item.appendChild(sw);
+    item.appendChild(document.createTextNode(s[2]));
+    box.appendChild(item);
+  }
+}
+
+// stacked columns: rows [{label, values: [...], title, tip}], series [[key, colour var, name]]
+function stacked(id, rows, series, opts) {
+  const svg = $(id), wrap = $(id + "-wrap"), tip = $(id + "-tip");
+  clear(svg);
+  const H = +svg.getAttribute("height"), W = widthOf(svg, 500), L = 40, R = 8, T = 10, B = 24;
+  svg.setAttribute("viewBox", "0 0 " + W + " " + H);
+  const total = rows.reduce((a, r) => a + r.values.reduce((b, v) => b + v, 0), 0);
+  if (!total) { text(svg, W / 2, H / 2, opts.empty || "Nothing in this range", "ink2", "middle"); return; }
+  const hi = Math.max(opts.floor || 1, ...rows.map((r) => r.values.reduce((a, v) => a + v, 0)));
+  const yt = niceTicks(0, hi, 4);
+  const y = (v) => T + (H - T - B) * (1 - v / yt.hi);
+  yAxis(svg, yt, y, L, W, R);
+  const band = (W - L - R) / rows.length;
+  const bw = Math.max(1, Math.min(26, band > 6 ? band - 3 : band * 0.8));
+  const every = Math.ceil(rows.length / Math.max(2, Math.floor((W - L - R) / (opts.labelWidth || 60))));
+  rows.forEach((r, i) => {
+    const bx = L + band * i + (band - bw) / 2;
+    if (i % every === 0) text(svg, bx + bw / 2, H - B + 16, r.label, null, "middle");
+    let base = 0;
+    const marks = [];
+    const top = r.values.reduce((a, v, k) => (v ? k : a), -1);
+    r.values.forEach((v, k) => {
+      if (!v) return;
+      const y0 = y(base), y1 = y(base + v);
+      // 2px surface gap between stacked segments; only the top segment is rounded
+      const gapped = base > 0 ? y0 - 1 : y0;
+      const d = k === top ? roundTop(bx, gapped, bw, y1, 3) : "M" + bx + " " + gapped + "V" + (y1 + 1) + "H" + (bx + bw) + "V" + gapped + "Z";
+      marks.push(el("path", { d, fill: css(series[k][1]) }, svg));
+      base += v;
+    });
+    const hit = el("rect", { x: L + band * i, y: T, width: band, height: H - T - B, fill: "transparent" }, svg);
+    hit.addEventListener("pointermove", () => {
+      marks.forEach((m) => m.setAttribute("opacity", "0.75"));
+      const sc = scaleOf(svg, W);
+      tipShow(tip, wrap, (bx + bw / 2) / sc, y(base) / sc, r.title, r.tip);
+    });
+    hit.addEventListener("pointerleave", () => { marks.forEach((m) => m.removeAttribute("opacity")); tipHide(tip); });
+  });
+}
+
+// ---------------------------------------------------------------- derived values
+function senderKey(s) { return SENDER[s] ? s : "other"; }
+function contact(s) { return Math.max(s.polled_at || 0, s.heartbeat_at || 0) || null; }
+function isLive(s) { const c = contact(s); return s.active && c !== null && state.doc.now - c < LIVE_S; }
+function sessionName(id) {
+  const s = state.doc.sessions.find((x) => x.id === id);
+  return s ? s.title : "unknown session";
+}
+function convName(id) {
+  const c = state.doc.conversations.find((x) => x.id === id);
+  if (!c) return "unknown conversation";
+  return c.kind === "direct" ? "Direct: " + c.title : c.title;
+}
+function median(xs) {
+  if (!xs.length) return null;
+  const s = xs.slice().sort((a, b) => a - b), m = s.length >> 1;
+  return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
+}
+function quantile(xs, q) {
+  if (!xs.length) return null;
+  const s = xs.slice().sort((a, b) => a - b);
+  return s[Math.min(s.length - 1, Math.floor(q * s.length))];
+}
+function localDay(t) { const d = new Date(t * 1000); d.setHours(0, 0, 0, 0); return d.getTime(); }
+function dayRows(days) {
+  const out = [], today = localDay(state.doc.now);
+  for (let i = days - 1; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    out.push(d.getTime());
+  }
+  return out;
+}
+
+// ---------------------------------------------------------------- header, KPIs
+function renderHeader() {
+  const D = state.doc;
+  const active = D.sessions.filter((s) => s.active);
+  const live = active.filter(isLive);
+  setChip("chip-live", live.length ? "good" : active.length ? "warn" : "info", live.length + " of " + active.length + " sessions live");
+  const stuck = D.open.filter((o) => D.now - o.since > STUCK_S);
+  const held = D.sessions.filter((s) => s.active && s.held_at);
+  const deliveries = (n) => n + (n === 1 ? " delivery" : " deliveries");
+  setChip("chip-stuck", held.length || stuck.length ? "bad" : D.open.length ? "warn" : "good", held.length ? held.length + (held.length === 1 ? " session" : " sessions") + " held" : stuck.length ? deliveries(stuck.length) + " stuck" : D.open.length ? deliveries(D.open.length) + " open" : "No deliveries waiting");
+  const B = D.model;
+  setChip("chip-model", B.enabled ? "good" : "info", B.enabled ? B.title + (B.name ? " " + B.name : "") + (B.actions ? ", actions on" : ", actions off") : B.title + " off");
+  $("f-broker").textContent = "Broker " + D.version + ", up " + span(D.now - D.started_at);
+}
+function renderKpis() {
+  const D = state.doc;
+  const active = D.sessions.filter((s) => s.active);
+  const live = active.filter(isLive);
+  $("k-live").textContent = String(live.length);
+  $("k-live").appendChild(html("small", "of " + active.length));
+  const byProv = {};
+  for (const s of live) byProv[s.provider] = (byProv[s.provider] || 0) + 1;
+  $("k-live-note").textContent = Object.keys(byProv).length ? Object.entries(byProv).map(([p, n]) => (SENDER[p] ? SENDER[p][2] : p) + " " + n).join(", ") : "no session polling";
+  const week = D.messages.filter((m) => D.now - m.at < 7 * 86400).length;
+  const before = D.messages.filter((m) => D.now - m.at >= 7 * 86400 && D.now - m.at < 14 * 86400).length;
+  $("k-msgs").textContent = num(week);
+  $("k-msgs-note").textContent = state.days < 14 ? "" : week === before ? "same as the 7 days before" : (week > before ? "+" : "") + (week - before) + " on the 7 days before";
+  const stuck = D.open.filter((o) => D.now - o.since > STUCK_S).length;
+  $("k-open").textContent = String(D.open.length);
+  $("k-open-note").textContent = D.open.length ? (stuck ? stuck + " over 10 min" : "none over 10 min") : "nothing waiting";
+  const reads = D.deliveries.filter((d) => d.read_after !== null).map((d) => d.read_after);
+  const med = median(reads);
+  $("k-read").textContent = med === null ? "–" : span(med);
+  $("k-read-note").textContent = reads.length ? "p90 " + span(quantile(reads, 0.9)) + " over " + num(reads.length) + " deliveries" : "no reads in range";
+}
+
+// ---------------------------------------------------------------- sessions
+function miniBar(counts) {
+  const bar = html("div", null, "mini");
+  const total = Object.values(counts).reduce((a, v) => a + v, 0);
+  const grouped = OUTCOMES.map((o) => o[3].reduce((a, s) => a + (counts[s] || 0), 0));
+  grouped.forEach((n, k) => {
+    if (!n) return;
+    const seg = html("i");
+    seg.style.width = (100 * n / total) + "%";
+    seg.style.background = "var(" + OUTCOMES[k][1] + ")";
+    seg.title = OUTCOMES[k][2] + ": " + n;
+    bar.appendChild(seg);
+  });
+  const note = html("div", total ? OUTCOMES.map((o, k) => (grouped[k] ? grouped[k] + " " + o[2].toLowerCase() : null)).filter(Boolean).join(", ") : "no deliveries", "mini-note");
+  return [bar, note];
+}
+function sessionRow(s) {
+  const row = html("div", null, "session");
+  const pd = html("i", null, "pdot");
+  pd.style.background = "var(" + SENDER[senderKey(s.provider)][1] + ")";
+  pd.title = SENDER[senderKey(s.provider)][2];
+  row.appendChild(pd);
+  const who = html("div", null, "who");
+  who.appendChild(html("div", s.title, "title"));
+  who.appendChild(html("div", (SENDER[s.provider] ? SENDER[s.provider][2] : s.provider) + (s.workspace ? " · " + s.workspace : ""), "ws"));
+  if (s.active && ["claude", "codex", "mock"].includes(s.provider)) {
+    const acts = html("div", null, "row");
+    acts.appendChild(button("Release", () => sessionAction("release", s), "small"));
+    acts.appendChild(button("Retire", () => sessionAction("retire", s), "small danger"));
+    who.appendChild(acts);
+  }
+  row.appendChild(who);
+  const ctr = html("div", null, "ctr");
+  for (const n of miniBar(s.deliveries)) ctr.appendChild(n);
+  row.appendChild(ctr);
+  const seen = html("div", null, "seen");
+  const c = contact(s), live = isLive(s);
+  const recent = c !== null && state.doc.now - c < 3600;
+  const held = s.active && s.held_at;
+  seen.appendChild(html("i", null, "dot " + (held ? "bad" : !s.active ? "info" : live ? "good" : recent ? "warn" : "info")));
+  const lbl = html("span", held ? "held" : !s.active ? "retired" : live ? (s.polled_at ? "polling" : "heartbeat") : c ? "idle" : "not seen");
+  seen.appendChild(lbl);
+  seen.appendChild(html("small", held ? ago(s.held_at) : c ? ago(c) : "since restart"));
+  seen.title = "Registered " + dtf.full.format(new Date(s.created_at * 1000)) + ". " + num(s.messages) + " messages sent" + (s.last_message_at ? ", the last " + ago(s.last_message_at) : "") + "." + (held ? " Held after " + s.expiries + " unread deliveries in a row: nothing is handed to it until it reads or registers again." : "");
+  row.appendChild(seen);
+  return row;
+}
+async function sessionAction(name, s) {
+  const ask = name === "release"
+    ? "Release " + s.title + "? Its next registration takes the binding."
+    : "Retire " + s.title + "? Its adapter is told it is gone and it receives nothing more.";
+  if (!confirm(ask)) return;
+  const done = await act(async () => {
+    if (name === "release") await call("release", { id: s.id });
+    else await call("retire", { id: s.id });
+    return true;
+  });
+  if (done) {
+    notify((name === "release" ? "Released " : "Retired ") + s.title, true);
+    load();
+  }
+}
+function renderSessions() {
+  legend("state-legend", OUTCOMES);
+  const D = state.doc;
+  const rank = (s) => (isLive(s) ? 0 : 1);
+  const waiting = new Set(D.open.map((o) => o.binding_id));
+  // registrations not heard from in an hour and with nothing waiting are folded away
+  const recent = (s) => isLive(s) || s.held_at || waiting.has(s.id) || D.now - Math.max(contact(s) || 0, s.last_message_at || 0) < 3600;
+  const all = D.sessions.filter((s) => s.active).sort((a, b) => rank(a) - rank(b) || (contact(b) || b.created_at) - (contact(a) || a.created_at));
+  const active = all.filter(recent), quiet = all.filter((s) => !recent(s));
+  const retired = D.sessions.filter((s) => !s.active).sort((a, b) => (b.last_message_at || b.created_at) - (a.last_message_at || a.created_at));
+  const box = $("sessions");
+  clear(box);
+  if (!active.length) box.appendChild(html("div", all.length ? "No session heard from in the last hour." : "No session registered.", "empty"));
+  for (const s of active) box.appendChild(sessionRow(s));
+  const qbox = $("quiet");
+  clear(qbox);
+  $("quiet-wrap").hidden = !quiet.length;
+  $("quiet-sum").textContent = quiet.length + " registered " + (quiet.length === 1 ? "session" : "sessions") + " not heard from in the last hour";
+  for (const s of quiet) qbox.appendChild(sessionRow(s));
+  const rbox = $("retired");
+  clear(rbox);
+  $("retired-wrap").hidden = !retired.length;
+  $("retired-sum").textContent = retired.length + " retired " + (retired.length === 1 ? "registration" : "registrations");
+  for (const s of retired) rbox.appendChild(sessionRow(s));
+}
+
+// ---------------------------------------------------------------- open deliveries
+function renderOpen() {
+  const D = state.doc, table = $("open-table");
+  clear(table);
+  if (!D.open.length) {
+    const tr = html("tr");
+    const td = html("td", "Nothing waiting.", "l");
+    td.style.color = "var(--muted)";
+    tr.appendChild(td);
+    table.appendChild(tr);
+    return;
+  }
+  const head = html("tr");
+  for (const h of ["", "State", "Session", "Conversation", "Posted", "Re-wakes", "In this state"]) head.appendChild(html("th", h, "l"));
+  head.lastChild.className = "";
+  table.appendChild(head);
+  for (const o of D.open.slice().sort((a, b) => a.since - b.since)) {
+    const tr = html("tr"), age = D.now - o.since;
+    const dc = html("td");
+    dc.appendChild(html("i", null, "dot " + (age > STUCK_S ? "bad" : "warn")));
+    tr.appendChild(dc);
+    tr.appendChild(html("td", o.state, "l"));
+    tr.appendChild(html("td", sessionName(o.binding_id), "l clip"));
+    tr.appendChild(html("td", convName(o.conversation_id), "l clip"));
+    tr.appendChild(html("td", dtf.full.format(new Date(o.posted_at * 1000)), "l"));
+    const L = D.ladder;
+    const next = o.wake_due_at ? (o.rewakes < L.rewake_limit ? "next in " : "closes in ") + span(o.wake_due_at - D.now) : "";
+    tr.appendChild(html("td", o.state === "queued" ? "" : o.wakes_sent + " sent, " + o.rewakes + " asked of " + L.rewake_limit + (next ? ", " + next : ""), "l"));
+    tr.appendChild(html("td", span(age)));
+    table.appendChild(tr);
+  }
+}
+
+// ---------------------------------------------------------------- charts
+function renderMessages() {
+  const D = state.doc, days = dayRows(state.days), idx = new Map(days.map((d, i) => [d, i]));
+  const counts = days.map(() => SENDERS.map(() => 0));
+  const order = SENDERS.map((s) => s[0]);
+  for (const m of D.messages) {
+    const i = idx.get(localDay(m.at));
+    if (i !== undefined) counts[i][order.indexOf(senderKey(m.sender))] += 1;
+  }
+  const used = SENDERS.filter((s, k) => s[0] !== "other" || counts.some((c) => c[k]));
+  legend("msg-legend", used);
+  const rows = days.map((d, i) => ({
+    label: dtf.md.format(new Date(d)),
+    title: dtf.day.format(new Date(d)),
+    values: counts[i],
+    tip: SENDERS.map((s, k) => ({ key: css(s[1]), value: String(counts[i][k]), label: s[2] })).filter((r, k) => counts[i][k]),
+  }));
+  for (const r of rows) if (!r.tip.length) r.tip = [{ label: "No messages" }];
+  stacked("msg", rows, SENDERS, {});
+  const table = $("msg-table");
+  clear(table);
+  const head = html("tr");
+  for (const h of ["Day", ...used.map((s) => s[2]), "Total"]) head.appendChild(html("th", h));
+  table.appendChild(head);
+  for (let i = days.length - 1; i >= 0; i--) {
+    const tr = html("tr");
+    tr.appendChild(html("td", dtf.day.format(new Date(days[i]))));
+    for (const s of used) tr.appendChild(html("td", String(counts[i][order.indexOf(s[0])])));
+    tr.appendChild(html("td", String(counts[i].reduce((a, v) => a + v, 0))));
+    table.appendChild(tr);
+  }
+}
+function renderDeliveries() {
+  const D = state.doc, days = dayRows(state.days), idx = new Map(days.map((d, i) => [d, i]));
+  const counts = days.map(() => OUTCOMES.map(() => 0));
+  for (const d of D.deliveries) {
+    const i = idx.get(localDay(d.at)), o = OUTCOME_OF[d.state];
+    if (i !== undefined && o) counts[i][OUTCOMES.indexOf(o)] += 1;
+  }
+  legend("del-legend", OUTCOMES);
+  const rows = days.map((d, i) => ({
+    label: dtf.md.format(new Date(d)),
+    title: dtf.day.format(new Date(d)),
+    values: counts[i],
+    tip: OUTCOMES.map((o, k) => ({ key: css(o[1]), value: String(counts[i][k]), label: o[2] })).filter((r, k) => counts[i][k]),
+  }));
+  for (const r of rows) if (!r.tip.length) r.tip = [{ label: "No deliveries" }];
+  stacked("del", rows, OUTCOMES, {});
+}
+const READ_BINS = [[5, "< 5 s"], [15, "5-15 s"], [60, "15-60 s"], [300, "1-5 min"], [1800, "5-30 min"], [7200, "30 min-2 h"], [Infinity, "> 2 h"]];
+function renderRead() {
+  const D = state.doc;
+  const reads = D.deliveries.filter((d) => d.read_after !== null);
+  const counts = READ_BINS.map(() => 0), byProv = READ_BINS.map(() => ({}));
+  for (const d of reads) {
+    const k = READ_BINS.findIndex((b) => d.read_after < b[0]);
+    counts[k] += 1;
+    const p = SENDER[d.provider] ? SENDER[d.provider][2] : d.provider;
+    byProv[k][p] = (byProv[k][p] || 0) + 1;
+  }
+  const meds = {};
+  for (const d of reads) (meds[d.provider] = meds[d.provider] || []).push(d.read_after);
+  $("read-sub").textContent = "From posting to the session reading or answering it." + (Object.keys(meds).length ? " Median " + Object.entries(meds).map(([p, xs]) => (SENDER[p] ? SENDER[p][2] : p) + " " + span(median(xs))).join(", ") + "." : "");
+  const rows = READ_BINS.map((b, k) => ({
+    label: b[1],
+    title: b[1] + ": " + counts[k] + " deliveries",
+    values: [counts[k]],
+    tip: Object.entries(byProv[k]).map(([p, n]) => ({ value: String(n), label: p })),
+  }));
+  for (const r of rows) if (!r.tip.length) r.tip = [{ label: "None" }];
+  stacked("read", rows, [["n", "--s1", "Deliveries"]], { labelWidth: 56, empty: "No reads in this range" });
+}
+
+// ---------------------------------------------------------------- conversations
+function convCard(c) {
+  const b = html("button", null, "conv");
+  b.type = "button";
+  b.setAttribute("aria-expanded", String(state.openConv === c.id));
+  b.appendChild(html("div", c.title, "ct"));
+  const meta = html("div", null, "cm");
+  const members = html("span", null, "members");
+  const keys = new Set(c.members.map(senderKey));
+  for (const [k] of SENDERS) {
+    if (!keys.has(k)) continue;
+    const d = html("i", null, "pdot");
+    d.style.background = "var(" + SENDER[k][1] + ")";
+    d.title = SENDER[k][2];
+    members.appendChild(d);
+  }
+  meta.appendChild(members);
+  meta.appendChild(html("span", c.kind === "direct" ? "direct" : c.mode.replace("_", " "), "tag"));
+  if (c.paused) meta.appendChild(html("span", "paused", "tag"));
+  if (c.open) {
+    const t = html("span", null, "tag");
+    t.appendChild(html("i", null, "dot warn"));
+    t.appendChild(document.createTextNode(" " + c.open + " open"));
+    meta.appendChild(t);
+  }
+  b.appendChild(meta);
+  b.appendChild(html("div", num(c.messages) + " messages · " + (c.last_message_at ? "last " + ago(c.last_message_at) : "none yet"), "cm"));
+  b.addEventListener("click", () => toggleConv(c.id));
+  return b;
+}
+function renderConversations() {
+  const D = state.doc;
+  const recent = (a, b) => (b.last_message_at || b.created_at) - (a.last_message_at || a.created_at);
+  const live = D.conversations.filter((c) => !c.archived).sort(recent);
+  const archived = D.conversations.filter((c) => c.archived).sort(recent);
+  const box = $("convs");
+  clear(box);
+  if (!live.length) box.appendChild(html("div", "No conversations.", "empty"));
+  for (const c of live) box.appendChild(convCard(c));
+  const abox = $("archived");
+  clear(abox);
+  $("archived-wrap").hidden = !archived.length;
+  $("archived-sum").textContent = archived.length + " removed " + (archived.length === 1 ? "group" : "groups");
+  for (const c of archived) abox.appendChild(convCard(c));
+}
+async function toggleConv(id) {
+  state.openConv = state.openConv === id ? null : id;
+  state.transcript = null;
+  renderConversations();
+  renderTranscript();
+  if (state.openConv) await loadTranscript(id);
+}
+async function loadTranscript(id) {
+  const msgs = [];
+  let after = 0;
+  try {
+    for (let page = 0; page < 50; page++) {
+      const evs = await call("events", { id, query: { after, limit: 1000 } });
+      for (const e of evs) if (e.type === "message.accepted") msgs.push(e);
+      if (evs.length < 1000) break;
+      after = evs[evs.length - 1].seq;
+    }
+  } catch (e) {
+    if (state.openConv === id) { state.transcript = { error: e.message }; renderTranscript(); }
+    return;
+  }
+  if (state.openConv !== id) return;
+  state.transcript = { id, msgs: msgs.slice(-40), total: msgs.length };
+  renderTranscript();
+}
+function renderTranscript() {
+  const box = $("transcript");
+  clear(box);
+  box.hidden = !state.openConv;
+  if (!state.openConv) return;
+  box.appendChild(html("h3", convName(state.openConv)));
+  const T = state.transcript;
+  if (!T) { box.appendChild(html("div", "Loading.", "empty")); return; }
+  if (T.error) { box.appendChild(html("div", "Could not read the conversation: " + T.error, "empty")); return; }
+  if (!T.msgs.length) { box.appendChild(html("div", "No messages.", "empty")); return; }
+  box.appendChild(html("div", T.total > T.msgs.length ? "The last " + T.msgs.length + " of " + T.total + " messages." : T.total + " messages.", "sub"));
+  for (const e of T.msgs.slice().reverse()) {
+    const row = html("div", null, "msg");
+    const from = html("div", null, "from");
+    let key = "user", name = state.doc.owner_name;
+    if (e.actor.kind !== "user") {
+      const s = state.doc.sessions.find((x) => x.id === e.actor.id);
+      key = senderKey(s ? s.provider : "other");
+      name = s ? s.title : "unknown session";
+    }
+    const d = html("i", null, "pdot");
+    d.style.background = "var(" + SENDER[key][1] + ")";
+    from.appendChild(d);
+    from.appendChild(html("span", name));
+    from.title = name;
+    row.appendChild(from);
+    // a poll rebuilds the list; the messages opened in full stay open
+    const body = html("div", e.payload.text || "", "body" + (state.expanded.has(e.event_id) ? " full" : ""));
+    body.addEventListener("click", () => {
+      if (state.expanded.has(e.event_id)) state.expanded.delete(e.event_id); else state.expanded.add(e.event_id);
+      body.classList.toggle("full");
+    });
+    row.appendChild(body);
+    row.appendChild(html("div", dtf.full.format(new Date(e.created_at * 1000)), "at"));
+    box.appendChild(row);
+  }
+}
+
+// ---------------------------------------------------------------- shared pieces
+function button(label, onClick, cls) {
+  const b = html("button", label, cls);
+  b.type = "button";
+  b.addEventListener("click", onClick);
+  return b;
+}
+function seg(options, current, onPick) {
+  const box = html("div", null, "seg");
+  for (const [value, label] of options) {
+    const b = button(label, () => onPick(value));
+    b.setAttribute("aria-pressed", String(value === current));
+    box.appendChild(b);
+  }
+  return box;
+}
+function checkbox(label, checked, onChange) {
+  const l = html("label");
+  const i = document.createElement("input");
+  i.type = "checkbox";
+  i.checked = checked;
+  i.addEventListener("change", () => onChange(i.checked));
+  l.appendChild(i);
+  l.appendChild(document.createTextNode(label));
+  return l;
+}
+function stateDot(deliveryState) {
+  const o = OUTCOME_OF[deliveryState];
+  const d = html("i", null, "pdot");
+  d.style.background = o ? "var(" + o[1] + ")" : "var(--quiet)";
+  return d;
+}
+// a client message id: hex from the crypto source, which works outside a secure context
+function uuid() {
+  const b = new Uint8Array(16);
+  crypto.getRandomValues(b);
+  return Array.from(b, (x) => x.toString(16).padStart(2, "0")).join("");
+}
+function fillTable(table, heads, rows, empty) {
+  clear(table);
+  if (!rows.length) {
+    const tr = html("tr"), td = html("td", empty, "l");
+    td.style.color = "var(--muted)";
+    tr.appendChild(td);
+    table.appendChild(tr);
+    return;
+  }
+  const head = html("tr");
+  for (const h of heads) head.appendChild(html("th", h, "l"));
+  table.appendChild(head);
+  for (const cells of rows) {
+    const tr = html("tr");
+    for (const c of cells) {
+      const td = html("td", null, "l clip");
+      if (c instanceof Node) td.appendChild(c);
+      else { td.textContent = c === null || c === undefined || c === "" ? "–" : String(c); td.title = td.textContent; }
+      tr.appendChild(td);
+    }
+    table.appendChild(tr);
+  }
+}
+const whenEpoch = (t) => (t ? dtf.full.format(new Date(t * 1000)) : "–");
+const whenIso = (s) => (s ? dtf.full.format(new Date(s)) : "–");
+// an owner action: its error is shown, and the page asks for sign-in again on a 401
+async function act(work, quiet) {
+  try { return await work(); } catch (e) {
+    if (e.auth) { load(); return undefined; }
+    if (!quiet) notify(e.message, false);
+    return undefined;
+  }
+}
+async function loadSession() {
+  const s = await call("session");
+  state.csrf = s.csrf;
+  state.owner = s.owner;
+}
+
+// ---------------------------------------------------------------- tabs
+const TABS = ["chat", "tasks", "status", "system"];
+function applyTab() {
+  for (const t of TABS) $("view-" + t).hidden = t !== state.tab;
+  for (const b of $("tabs").querySelectorAll("button")) b.setAttribute("aria-pressed", String(b.dataset.tab === state.tab));
+}
+function showTab(t) {
+  state.tab = t;
+  store("tab", t);
+  applyTab();
+  refreshTab();
+}
+async function refreshTab(quiet) {
+  if (!state.doc) return;
+  if (state.tab === "chat") await refreshChat(quiet);
+  else if (state.tab === "tasks") await refreshTasks(quiet);
+  else if (state.tab === "system") await refreshSystem(quiet);
+  else renderAll();
+}
+
+// ---------------------------------------------------------------- chat
+const chat = {
+  list: [], sessions: [], sel: null, detail: null, events: [], cursor: 0, creating: false,
+  to: new Set(), mode: "auto", drafts: {}, details: {}, redirecting: null, limit: 100, stick: true,
+  sending: false, pendingKey: "", pendingId: "", composeSig: "", toolsSig: "", threadSig: "", formBuilt: false,
+};
+const SEND_HINTS = {
+  auto: "The session's own choice: it starts an idle session and joins a running turn.",
+  queue: "A new turn after the current one.",
+  steer: "Into the turn that is running now.",
+  restart: "Interrupts the running turn, then starts with this message.",
+};
+const SYSTEM_EVENTS = {
+  "conversation.mode_changed": (p) => "Mode set to " + String(p.mode).replace("_", " "),
+  "collaboration.started": (p) => "Collaboration started: " + p.objective,
+  "collaboration.stopped": (p) => "Collaboration stopped: " + p.reason,
+  "collaboration.reopened": () => "Collaboration reopened",
+  "collaboration.paused": () => "Paused",
+  "collaboration.resumed": () => "Resumed",
+  "conversation.archived": () => "Group removed",
+  "conversation.restored": () => "Group restored",
+  "delivery.redirected": (p) => "A message was sent again to " + sessionTitle(p.to_binding_id) + " (" + p.disposition + ")",
+};
+function sessionById(id) {
+  return chat.sessions.find((s) => s.id === id) || (state.doc && state.doc.sessions.find((s) => s.id === id)) || null;
+}
+function sessionTitle(id) { const s = sessionById(id); return s ? s.title : String(id).slice(0, 8); }
+function pickable() { return chat.sessions.filter((s) => s.active && ["claude", "codex", "mock", "model", "chatgpt"].includes(s.provider)); }
+function sendModesOf(s) {
+  const m = s && s.capabilities && s.capabilities.send_modes;
+  return Array.isArray(m) && m.includes("auto") ? m : ["auto"];
+}
+function convMeta(id) { return state.doc && state.doc.conversations.find((c) => c.id === id); }
+function isGroup() { return chat.detail && chat.detail.kind === "group"; }
+
+async function refreshChat(quiet) {
+  await act(async () => {
+    const [list, sessions] = await Promise.all([call("conversations"), call("sessions")]);
+    chat.list = list;
+    chat.sessions = sessions;
+    if (chat.sel) await refreshConversation();
+    else renderChat();
+  }, quiet);
+}
+async function fetchEvents(id, after) {
+  const out = [];
+  for (let page = 0; page < 50; page++) {
+    const evs = await call("events", { id, query: { after, limit: 1000 } });
+    out.push(...evs);
+    if (evs.length < 1000) break;
+    after = evs[evs.length - 1].seq;
+  }
+  return out;
+}
+async function refreshConversation() {
+  const id = chat.sel;
+  const [detail, evs] = await Promise.all([call("conversation", { id }), fetchEvents(id, chat.cursor)]);
+  if (chat.sel !== id) return;
+  chat.detail = detail;
+  if (evs.length) { chat.events.push(...evs); chat.cursor = evs[evs.length - 1].seq; }
+  renderChat();
+}
+async function openChat(id) {
+  if (chat.sel) chat.drafts[chat.sel] = $("cv-text").value;
+  Object.assign(chat, { sel: id, creating: false, detail: null, events: [], cursor: 0, to: new Set(), mode: "auto", details: {}, redirecting: null, limit: 100, stick: true, composeSig: "", toolsSig: "", threadSig: "" });
+  $("cv-text").value = chat.drafts[id] || "";
+  $("chat").dataset.pane = "conv";
+  renderChat();
+  await refreshChat();
+}
+function closeChat() {
+  if (chat.sel) chat.drafts[chat.sel] = $("cv-text").value;
+  Object.assign(chat, { sel: null, creating: false, detail: null });
+  $("chat").dataset.pane = "list";
+  renderChat();
+}
+
+function chatItem(c) {
+  const m = convMeta(c.id) || {};
+  const b = button(null, () => openChat(c.id), "chat-item");
+  b.setAttribute("aria-current", String(chat.sel === c.id));
+  b.appendChild(html("div", c.title, "ct"));
+  const meta = html("div", null, "cm");
+  meta.appendChild(html("span", c.kind === "direct" ? "direct" : c.mode.replace("_", " "), "tag"));
+  if (c.paused) meta.appendChild(html("span", "paused", "tag"));
+  if (m.open) {
+    const t = html("span", null, "tag");
+    t.appendChild(html("i", null, "dot warn"));
+    t.appendChild(document.createTextNode(" " + m.open + " open"));
+    meta.appendChild(t);
+  }
+  meta.appendChild(html("span", m.last_message_at ? ago(m.last_message_at) : "no messages"));
+  b.appendChild(meta);
+  return b;
+}
+function renderChatList() {
+  const recent = (a, b) => ((convMeta(b.id) || b).last_message_at || 0) - ((convMeta(a.id) || a).last_message_at || 0);
+  const box = $("chat-items");
+  clear(box);
+  if (!chat.list.length) box.appendChild(html("div", "No conversations yet.", "empty"));
+  for (const c of chat.list.slice().sort(recent)) box.appendChild(chatItem(c));
+  const removed = state.doc ? state.doc.conversations.filter((c) => c.archived && c.kind === "group").sort(recent) : [];
+  $("chat-archived-wrap").hidden = !removed.length;
+  $("chat-archived-sum").textContent = removed.length + " removed " + (removed.length === 1 ? "group" : "groups");
+  const abox = $("chat-archived");
+  clear(abox);
+  for (const c of removed) abox.appendChild(chatItem(c));
+}
+// A poll redraws a part only when what it shows changed, so text typed into a form or a select left open survives it.
+function renderChat() {
+  $("chat-empty").hidden = !!chat.sel || chat.creating;
+  $("chat-newform").hidden = !chat.creating;
+  $("chat-conv").hidden = !chat.sel;
+  renderChatList();
+  if (chat.creating) {
+    if (!chat.formBuilt) { renderNewForm(); chat.formBuilt = true; }
+  } else {
+    chat.formBuilt = false;
+  }
+  if (!chat.sel) return;
+  const names = pickable().map((s) => [s.id, s.title]);
+  const toolsSig = JSON.stringify([chat.detail, names]);
+  if (toolsSig !== chat.toolsSig) { chat.toolsSig = toolsSig; renderHead(); renderTools(); }
+  const threadSig = JSON.stringify([chat.events.length, chat.cursor, !!chat.detail, names]);
+  if (threadSig !== chat.threadSig) { chat.threadSig = threadSig; renderThread(); }
+  renderCompose();
+}
+
+function renderHead() {
+  const box = $("cv-head"), c = chat.detail, listed = chat.list.find((x) => x.id === chat.sel) || convMeta(chat.sel);
+  clear(box);
+  box.appendChild(button("Back", closeChat, "cv-back"));
+  box.appendChild(html("h2", c ? c.title : listed ? listed.title : "Conversation"));
+  if (!c) return;
+  box.appendChild(html("span", c.kind === "direct" ? "direct" : c.mode.replace("_", " "), "tag"));
+  if (c.paused) box.appendChild(html("span", "paused", "tag"));
+  if (c.archived) box.appendChild(html("span", "removed", "tag"));
+}
+function toolRow(label) {
+  const r = html("div", null, "row");
+  r.appendChild(html("span", label, "label"));
+  return r;
+}
+// run an owner write, then refresh the chat and the status behind it
+async function mutate(work, done) {
+  const ok = await act(async () => { await work(); return true; });
+  if (ok) {
+    if (done) notify(done, true);
+    await refreshChat();
+    load();
+  }
+  return ok;
+}
+function renderTools() {
+  const box = $("cv-tools"), c = chat.detail, id = chat.sel;
+  clear(box);
+  if (!c) return;
+  const members = toolRow("Members");
+  const inChat = new Set();
+  for (const m of c.members) {
+    if (m.kind === "binding") inChat.add(m.id);
+    const t = html("span", null, "tag");
+    if (m.kind === "binding") {
+      const d = html("i", null, "pdot");
+      d.style.background = "var(" + SENDER[senderKey(m.provider)][1] + ")";
+      t.appendChild(d);
+    }
+    t.appendChild(document.createTextNode((m.kind === "user" ? state.doc.owner_name : m.title) + (m.kind === "binding" && !m.active ? " (retired)" : "") + (m.adapter_behind ? " (adapter behind)" : "")));
+    members.appendChild(t);
+  }
+  box.appendChild(members);
+  if (isGroup() && !c.archived) {
+    const addable = pickable().filter((s) => !inChat.has(s.id));
+    if (addable.length) {
+      const add = toolRow("Add");
+      const pick = document.createElement("select");
+      pick.setAttribute("aria-label", "Session to add");
+      for (const s of addable) { const o = document.createElement("option"); o.value = s.id; o.textContent = s.title; pick.appendChild(o); }
+      add.appendChild(pick);
+      add.appendChild(button("Add to group", () => mutate(() => call("addMember", { id, body: { binding_id: pick.value } }), "Added"), "small"));
+      box.appendChild(add);
+    }
+    const mode = toolRow("Mode");
+    mode.appendChild(seg([["user_directed", "Owner directed"], ["consult", "Consult"]], c.mode, (m) => mutate(() => call("setMode", { id, body: { mode: m } }), "Mode set")));
+    box.appendChild(mode);
+    const collab = c.collaboration;
+    const cb = toolRow("Collaborate");
+    if (collab && collab.active) {
+      cb.appendChild(html("span", collab.objective + " · " + collab.turns_used + " of " + collab.max_turns + " turns, until " + whenEpoch(collab.expires_at), "collab"));
+      cb.appendChild(button("Stop collaboration", () => mutate(() => call("stopCollaboration", { id }), "Collaboration stopped"), "small danger"));
+    } else {
+      const d = document.createElement("details");
+      d.appendChild(html("summary", "Start a collaboration"));
+      const form = html("form", null, "collab-form");
+      const objective = document.createElement("textarea");
+      objective.rows = 2;
+      objective.placeholder = "Objective";
+      objective.setAttribute("aria-label", "Objective");
+      const turns = document.createElement("input");
+      turns.type = "number"; turns.min = "1"; turns.max = "12"; turns.value = "6";
+      const minutes = document.createElement("input");
+      minutes.type = "number"; minutes.min = "1"; minutes.max = "60"; minutes.value = "10";
+      const nums = html("div", null, "row");
+      const l1 = html("label", "Turns "); l1.appendChild(turns);
+      const l2 = html("label", "Minutes "); l2.appendChild(minutes);
+      nums.appendChild(l1); nums.appendChild(l2);
+      const start = html("button", "Start", "primary");
+      start.type = "submit";
+      nums.appendChild(start);
+      form.appendChild(objective);
+      form.appendChild(nums);
+      form.addEventListener("submit", (ev) => {
+        ev.preventDefault();
+        mutate(() => call("collaborate", { id, body: { objective: objective.value, max_turns: +turns.value, minutes: +minutes.value } }), "Collaboration started");
+      });
+      d.appendChild(form);
+      cb.appendChild(d);
+    }
+    box.appendChild(cb);
+  }
+  const ctl = toolRow("Control");
+  if (c.archived) {
+    ctl.appendChild(button("Restore group", () => mutate(() => call("restore", { id }), "Group restored"), "small"));
+  } else {
+    ctl.appendChild(button(c.paused ? "Resume" : "Pause", () => mutate(() => call("control", { id, body: { action: c.paused ? "resume" : "pause" } })), "small"));
+    ctl.appendChild(button("Cancel queued", () => { if (confirm("Cancel every message still waiting to be handed to a session?")) mutate(() => call("control", { id, body: { action: "stop" } }), "Queued messages cancelled"); }, "small danger"));
+    if (isGroup()) ctl.appendChild(button("Remove group", () => { if (confirm("Remove this group from the lists? History is kept and it can be restored.")) mutate(() => call("archive", { id }), "Group removed").then((ok) => { if (ok) closeChat(); }); }, "small danger"));
+  }
+  box.appendChild(ctl);
+}
+
+// the conversation's events as messages with each recipient's latest delivery state, and the owner's other changes as lines
+function timeline() {
+  const dels = new Map(), items = [];
+  for (const e of chat.events) {
+    if (e.type === "delivery.changed") {
+      const m = dels.get(e.message_id) || new Map();
+      dels.set(e.message_id, m);
+      m.set(e.payload.delivery_id, { id: e.payload.delivery_id, binding_id: e.payload.binding_id, state: e.payload.state, reason: e.payload.reason || null });
+    } else if (e.type === "message.accepted") items.push(e);
+    else if (SYSTEM_EVENTS[e.type]) items.push(e);
+  }
+  return { items, dels };
+}
+function senderOf(e) {
+  const mine = e.actor.kind === "user" && e.actor.id === state.owner;
+  if (mine) return { key: "user", name: state.doc.owner_name, mine };
+  if (e.actor.kind === "user") return { key: "other", name: (e.payload.from && e.payload.from.title) || e.actor.id, mine };
+  const s = sessionById(e.actor.id);
+  return { key: senderKey(s ? s.provider : "other"), name: (e.payload.from && e.payload.from.title) || (s && s.title) || "unknown session", mine };
+}
+function deliveryChip(msg, d, mine) {
+  const chip = html("span", null, "tag");
+  chip.appendChild(stateDot(d.state));
+  chip.appendChild(document.createTextNode(sessionTitle(d.binding_id) + ": " + d.state));
+  if (d.reason) chip.title = d.reason;
+  if (mine) {
+    const r = button("Send again", () => { chat.redirecting = chat.redirecting === d.id ? null : d.id; renderThread(); }, "small");
+    chip.appendChild(r);
+  }
+  return chip;
+}
+function redirectRow(msg, d) {
+  const row = html("div", null, "redirect");
+  const pick = document.createElement("select");
+  pick.setAttribute("aria-label", "Session to send to");
+  const sent = new Set((msg.payload.recipients || []).concat([d.binding_id]));
+  const memberIds = new Set(chat.detail.members.filter((m) => m.kind === "binding").map((m) => m.id));
+  for (const s of pickable()) {
+    if (sent.has(s.id) || (isGroup() && !memberIds.has(s.id))) continue;
+    const o = document.createElement("option");
+    o.value = s.id;
+    o.textContent = s.title;
+    pick.appendChild(o);
+  }
+  if (!pick.options.length) { row.appendChild(html("span", "No other session can take it.", "collab")); return row; }
+  row.appendChild(html("span", "Send again to", "collab"));
+  row.appendChild(pick);
+  row.appendChild(button("Send", async () => {
+    const r = await act(() => call("redirect", { id: d.id, body: { to: pick.value, expected_state: d.state } }));
+    if (r) { chat.redirecting = null; notify("Sent again to " + sessionTitle(pick.value) + " (" + r.disposition + ")", true); await refreshChat(); load(); }
+  }, "small primary"));
+  return row;
+}
+function detailTable(info) {
+  const box = html("div", null, "detail");
+  box.appendChild(html("div", "Sent " + whenIso(info.message.sent_at) + (info.seq ? ", event " + info.seq : "")));
+  const table = html("table");
+  fillTable(table, ["To", "State", "Read", "Reason"], info.deliveries.map((v) => [v.to, v.state, v.read ? whenIso(v.read_at) : "not read", v.reason]), "No deliveries.");
+  box.appendChild(table);
+  return box;
+}
+function bubble(e, dels) {
+  const s = senderOf(e), p = e.payload;
+  const b = html("div", null, "bubble" + (s.mine ? " mine" : ""));
+  const who = html("div", null, "who");
+  const dot = html("i", null, "pdot");
+  dot.style.background = "var(" + SENDER[s.key][1] + ")";
+  who.appendChild(dot);
+  who.appendChild(html("span", s.name));
+  who.appendChild(html("small", dtf.full.format(new Date(e.created_at * 1000))));
+  b.appendChild(who);
+  b.appendChild(html("div", p.text || "", "txt"));
+  const to = (p.to || []).map((t) => (t.kind === "user" ? state.doc.owner_name : t.title));
+  if (to.length) b.appendChild(html("div", "to " + to.join(", "), "to"));
+  const ds = dels.get(e.message_id);
+  if (ds && ds.size) {
+    const row = html("div", null, "dels");
+    for (const d of ds.values()) row.appendChild(deliveryChip(e, d, s.mine));
+    row.appendChild(button(chat.details[e.message_id] ? "Hide details" : "Details", () => toggleDetails(e.message_id), "small"));
+    b.appendChild(row);
+    for (const d of ds.values()) if (s.mine && chat.redirecting === d.id) b.appendChild(redirectRow(e, d));
+    if (chat.details[e.message_id]) b.appendChild(detailTable(chat.details[e.message_id]));
+  }
+  return b;
+}
+async function toggleDetails(messageId) {
+  if (chat.details[messageId]) { delete chat.details[messageId]; renderThread(); return; }
+  const info = await act(() => call("message", { id: messageId }));
+  if (info) { chat.details[messageId] = info; renderThread(); }
+}
+function renderThread() {
+  const box = $("cv-msgs");
+  const near = box.scrollHeight - box.scrollTop - box.clientHeight < 80;
+  clear(box);
+  const { items, dels } = timeline();
+  if (!items.length) box.appendChild(html("div", chat.detail ? "No messages yet." : "Loading.", "empty"));
+  if (items.length > chat.limit) {
+    box.appendChild(button("Show earlier messages", () => { chat.limit += 100; renderThread(); }, "small"));
+  }
+  for (const e of items.slice(-chat.limit)) {
+    if (e.type === "message.accepted") box.appendChild(bubble(e, dels));
+    else box.appendChild(html("div", SYSTEM_EVENTS[e.type](e.payload) + " · " + dtf.full.format(new Date(e.created_at * 1000)), "sysline"));
+  }
+  if (chat.stick || near) { box.scrollTop = box.scrollHeight; chat.stick = false; }
+}
+
+function renderCompose() {
+  const c = chat.detail, box = $("cv-to"), closed = !c || c.archived;
+  const sessionMembers = c ? c.members.filter((m) => m.kind === "binding") : [];
+  const group = isGroup();
+  const targets = group ? sessionMembers.filter((m) => chat.to.has(m.id)) : sessionMembers;
+  const modes = ["auto"].concat(["queue", "steer", "restart"].filter((m) => targets.length && targets.every((t) => sendModesOf(sessionById(t.id)).includes(m))));
+  if (!modes.includes(chat.mode)) chat.mode = "auto";
+  const sig = JSON.stringify([c && c.id, closed, group, sessionMembers.map((m) => [m.id, m.active]), [...chat.to], modes, chat.mode]);
+  $("cv-text").disabled = $("cv-send").disabled = closed || chat.sending;
+  $("cv-hint").textContent = c && c.archived ? "A removed group takes no message. Restore it first." : SEND_HINTS[chat.mode];
+  if (sig === chat.composeSig) return;
+  chat.composeSig = sig;
+  clear(box);
+  if (group) {
+    box.appendChild(html("span", "To", "collab"));
+    const live = sessionMembers.filter((m) => m.active);
+    for (const m of live) box.appendChild(checkbox(m.title, chat.to.has(m.id), (on) => { if (on) chat.to.add(m.id); else chat.to.delete(m.id); renderCompose(); }));
+    if (live.length > 1) box.appendChild(button("All", () => { for (const m of live) chat.to.add(m.id); renderCompose(); }, "small"));
+  } else if (sessionMembers.length) {
+    box.appendChild(html("span", "To " + sessionMembers.map((m) => m.title).join(", "), "collab"));
+  }
+  const select = $("cv-send-mode");
+  clear(select);
+  for (const m of modes) { const o = document.createElement("option"); o.value = m; o.textContent = m; select.appendChild(o); }
+  select.value = chat.mode;
+}
+$("cv-send-mode").addEventListener("change", () => { chat.mode = $("cv-send-mode").value; renderCompose(); });
+$("cv-text").addEventListener("keydown", (ev) => {
+  if ((ev.ctrlKey || ev.metaKey) && ev.key === "Enter") $("cv-compose").requestSubmit();
+});
+$("cv-compose").addEventListener("submit", async (ev) => {
+  ev.preventDefault();
+  const c = chat.detail, text = $("cv-text").value;
+  if (!c || chat.sending || !text.trim()) return;
+  const recipients = isGroup() ? [...chat.to] : undefined;
+  if (recipients && !recipients.length) { notify("Pick who this message goes to.", false); return; }
+  // the same text to the same people keeps its id, so a send retried after a lost reply is not posted twice
+  const key = JSON.stringify([c.id, text, recipients, chat.mode]);
+  if (chat.pendingKey !== key) { chat.pendingKey = key; chat.pendingId = uuid(); }
+  chat.sending = true;
+  renderCompose();
+  const ok = await act(async () => {
+    await call("post", { id: c.id, body: { client_message_id: chat.pendingId, text, recipients, mode: chat.mode } });
+    return true;
+  });
+  chat.sending = false;
+  if (ok) {
+    chat.pendingKey = "";
+    chat.drafts[c.id] = "";
+    if (chat.sel === c.id) { $("cv-text").value = ""; chat.stick = true; }
+    await refreshChat();
+    load();
+  } else {
+    renderCompose();
+  }
+});
+
+function renderNewForm() {
+  const form = $("chat-newform");
+  clear(form);
+  const sessions = pickable();
+  const direct = html("fieldset");
+  direct.appendChild(html("legend", "Direct chat with one session"));
+  const pick = document.createElement("select");
+  pick.setAttribute("aria-label", "Session");
+  for (const s of sessions) { const o = document.createElement("option"); o.value = s.id; o.textContent = s.title + " (" + s.provider + ")"; pick.appendChild(o); }
+  direct.appendChild(pick);
+  const go = button("Open", async () => {
+    const c = await act(() => call("openDirect", { body: { binding_id: pick.value } }));
+    if (c) { await refreshChat(); openChat(c.id); }
+  }, "primary");
+  go.disabled = !sessions.length;
+  direct.appendChild(go);
+  form.appendChild(direct);
+  const group = html("fieldset");
+  group.appendChild(html("legend", "Group"));
+  const title = document.createElement("input");
+  title.placeholder = "Title";
+  title.maxLength = 200;
+  title.setAttribute("aria-label", "Group title");
+  group.appendChild(title);
+  const mode = document.createElement("select");
+  mode.setAttribute("aria-label", "Group mode");
+  for (const [v, l] of [["user_directed", "Owner directed"], ["consult", "Consult"]]) { const o = document.createElement("option"); o.value = v; o.textContent = l; mode.appendChild(o); }
+  group.appendChild(mode);
+  const picks = html("div", null, "picks"), chosen = new Set();
+  for (const s of sessions) picks.appendChild(checkbox(s.title + " (" + s.provider + ")", false, (on) => { if (on) chosen.add(s.id); else chosen.delete(s.id); }));
+  group.appendChild(picks);
+  group.appendChild(button("Create group", async () => {
+    if (!title.value.trim()) { notify("A group needs a title.", false); return; }
+    const created = await act(() => call("createGroup", { body: { title: title.value.trim(), mode: mode.value } }));
+    if (!created) return;
+    for (const id of chosen) await act(() => call("addMember", { id: created.id, body: { binding_id: id } }));
+    await refreshChat();
+    load();
+    openChat(created.id);
+  }, "primary"));
+  form.appendChild(group);
+  form.appendChild(button("Cancel", closeChat));
+}
+$("chat-newform").addEventListener("submit", (ev) => ev.preventDefault());
+$("chat-new").addEventListener("click", () => {
+  if (chat.sel) chat.drafts[chat.sel] = $("cv-text").value;
+  Object.assign(chat, { sel: null, detail: null, creating: true, formBuilt: false });
+  $("chat").dataset.pane = "conv";
+  renderChat();
+});
+
+// ---------------------------------------------------------------- tasks
+const tasks = { open: 1, list: [], shown: new Map() };
+async function refreshTasks(quiet) {
+  await act(async () => {
+    tasks.list = await call("tasks", { query: { open: tasks.open } });
+    for (const id of [...tasks.shown.keys()]) tasks.shown.set(id, await call("task", { id }));
+    renderTasks();
+  }, quiet);
+}
+function taskNode(t) {
+  const box = html("div", null, "task");
+  const head = html("div", null, "row");
+  head.appendChild(html("span", t.requester.title + " → " + t.assignee.title, "grow"));
+  head.appendChild(html("span", t.status.replace(/_/g, " ") + (t.outcome ? ", " + t.outcome : ""), "tag"));
+  box.appendChild(head);
+  box.appendChild(html("div", t.task.split(/\s+/).join(" ").slice(0, 200), "tt"));
+  const meta = html("div", null, "tm");
+  meta.appendChild(html("span", "created " + whenIso(t.created_at)));
+  if (t.ended_at) meta.appendChild(html("span", "ended " + whenIso(t.ended_at)));
+  if (t.questions.length) meta.appendChild(html("span", t.questions.length + " open " + (t.questions.length === 1 ? "question" : "questions")));
+  const shown = tasks.shown.has(t.id);
+  meta.appendChild(button(shown ? "Hide" : "Details", async () => {
+    if (shown) tasks.shown.delete(t.id);
+    else { const d = await act(() => call("task", { id: t.id })); if (!d) return; tasks.shown.set(t.id, d); }
+    renderTasks();
+  }, "small"));
+  if (!t.ended_at) {
+    meta.appendChild(button("Cancel", async () => {
+      if (!confirm("Cancel this task and every task below it?")) return;
+      if (await act(async () => { await call("cancelTask", { id: t.id, body: {} }); return true; })) { notify("Task cancelled", true); refreshTasks(); }
+    }, "small danger"));
+  }
+  box.appendChild(meta);
+  const d = tasks.shown.get(t.id);
+  if (d) {
+    const detail = html("div", null, "detail");
+    detail.appendChild(html("div", "Task: " + d.task));
+    detail.appendChild(html("div", "Done when: " + d.done_when));
+    for (const q of d.questions) detail.appendChild(html("div", "Open " + q.kind + " question: " + q.text));
+    for (const ch of d.children) detail.appendChild(html("div", "Child task " + ch.id + ": " + ch.status));
+    if (d.result !== null) { detail.appendChild(html("div", "Result:")); detail.appendChild(html("pre", d.result)); }
+    const table = html("table");
+    fillTable(table, ["When", "Event", "By", "Detail"], d.events.map((e) => [whenIso(e.created_at), e.type, e.actor.id.slice(0, 8), JSON.stringify(e.payload)]), "No events.");
+    detail.appendChild(table);
+    box.appendChild(detail);
+  }
+  return box;
+}
+function renderTasks() {
+  const box = $("task-list");
+  clear(box);
+  for (const b of $("tasks-scope").querySelectorAll("button")) b.setAttribute("aria-pressed", String(+b.dataset.open === tasks.open));
+  if (!tasks.list.length) { box.appendChild(html("div", tasks.open ? "No open tasks." : "No tasks.", "empty")); return; }
+  for (const t of tasks.list.slice().reverse()) box.appendChild(taskNode(t));
+}
+$("tasks-scope").addEventListener("click", (ev) => {
+  const b = ev.target.closest("button");
+  if (!b) return;
+  tasks.open = +b.dataset.open;
+  store("tasks-open", String(tasks.open));
+  refreshTasks();
+});
+
+// ---------------------------------------------------------------- system
+async function refreshSystem(quiet) {
+  await act(async () => {
+    const [refusals, limits, starts, subs, devices] = await Promise.all([call("refusals"), call("limits"), call("wakerStarts"), call("subscriptions"), call("devices")]);
+    fillTable($("ref-table"), ["When", "Source", "What", "Reason"], refusals.map((r) => [whenEpoch(r.at), r.source, r.what, r.reason]), "Nothing refused in the last day.");
+    fillTable($("lim-table"), ["Failed", "Resets", "Source", "State", "Session", "Reason"], limits.map((r) => [whenEpoch(r.failed_at), whenEpoch(r.reset_at), r.source, r.state, sessionTitle(r.binding_id), r.reason]), "No usage-limit resumes.");
+    fillTable($("wak-table"), ["When", "Result", "Route", "Session", "Detail"], starts.map((w) => [whenIso(w.at), w.ok ? "ok" : "failed", w.route, w.title, w.detail]), "The waker has started nothing.");
+    fillTable($("sub-table"), ["Host", "Created", "Renewals", "Last renewed", "Valid until", "Last event", "Status"], subs.map((s) => [s.host, whenEpoch(s.created_at), s.renewals, whenEpoch(s.renewed_at), whenEpoch(s.refresh_before), s.last_event_id ? s.last_event_id + " " + whenEpoch(s.last_event_at) : "", s.last_status]), "No subscriptions.");
+    fillTable($("dev-table"), ["Device", "State", "Last call", ""], devices.map((d) => [d.label, d.disabled ? "disabled" : "enabled", whenEpoch(d.last_seen_at), button(d.disabled ? "Enable" : "Disable", async () => {
+      if (await act(async () => { await call("device", { id: d.id, switch: d.disabled ? "enable" : "disable" }); return true; })) refreshSystem();
+    }, "small")]), "No device enrolled.");
+  }, quiet);
+}
+
+// ---------------------------------------------------------------- loading
+function renderAll() {
+  if (!state.doc) return;
+  renderHeader();
+  renderChatList();
+  if (state.tab !== "status") return;
+  renderKpis();
+  renderSessions();
+  renderOpen();
+  renderMessages();
+  renderDeliveries();
+  renderRead();
+  renderConversations();
+  renderTranscript();
+}
+async function load() {
+  try {
+    state.doc = await call("status", { query: { days: state.days } });
+    SENDER.user[2] = state.doc.owner_name;
+    SENDER.model[2] = state.doc.model.title;
+  } catch (e) {
+    if (e.auth) {
+      $("gate").hidden = false;
+      $("body").hidden = true;
+      $("tabs").hidden = true;
+      setChip("chip-live", "info", "Not signed in");
+      $("chip-stuck").hidden = $("chip-model").hidden = true;
+      $("f-broker").textContent = $("f-updated").textContent = "";
+      return;
+    }
+    $("f-updated").textContent = "Could not read api/status: " + e.message;
+    return;
+  }
+  if (!state.csrf || !state.owner) await act(loadSession, true);
+  $("gate").hidden = true;
+  $("body").hidden = false;
+  $("tabs").hidden = false;
+  $("chip-stuck").hidden = $("chip-model").hidden = false;
+  renderAll();
+  $("f-updated").textContent = "Updated " + dtf.full.format(new Date());
+  const open = state.openConv && state.doc.conversations.find((c) => c.id === state.openConv);
+  if (open && state.transcript && !state.transcript.error && open.messages !== state.transcript.total) loadTranscript(open.id);
+  applyTab();
+  if (!state.booted) { state.booted = true; refreshTab(); }
+}
+function setRange(days) {
+  state.days = days;
+  store("days", String(days));
+  for (const b of $("range").querySelectorAll("button")) b.setAttribute("aria-pressed", String(+b.dataset.days === days));
+}
+function applyTheme(t) {
+  document.documentElement.setAttribute("data-theme", t);
+  $("theme").textContent = t === "dark" ? "Light" : "Dark";
+  store("theme", t);
+}
+applyTheme(recall("theme") === "light" ? "light" : "dark");
+setRange([7, 30, 90].includes(+recall("days")) ? +recall("days") : 30);
+$("theme").addEventListener("click", () => {
+  applyTheme(document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark");
+  renderAll();
+});
+$("range").addEventListener("click", (ev) => {
+  const b = ev.target.closest("button");
+  if (!b) return;
+  setRange(+b.dataset.days);
+  load();
+});
+// redraw on a width change only: a height change (an opened transcript) must not rebuild the page
+let resizeTimer = 0, drawnWidth = 0;
+new ResizeObserver((entries) => {
+  const w = Math.round(entries[0].contentRect.width);
+  if (w === drawnWidth) return;
+  drawnWidth = w;
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(renderAll, 120);
+}).observe(document.querySelector("main"));
+state.tab = TABS.includes(recall("tab")) ? recall("tab") : "chat";
+tasks.open = recall("tasks-open") === "0" ? 0 : 1;
+$("tabs").addEventListener("click", (ev) => {
+  const b = ev.target.closest("button");
+  if (b) showTab(b.dataset.tab);
+});
+$("pair-form").addEventListener("submit", async (ev) => {
+  ev.preventDefault();
+  $("pair-err").textContent = "";
+  try {
+    const r = await call("pair", { body: { code: $("pair-code").value } });
+    state.csrf = r.csrf;
+    $("pair-code").value = "";
+    load();
+  } catch (e) {
+    $("pair-err").textContent = e.message;
+  }
+});
+load();
+setInterval(load, 20000);
+// the open tab follows the broker: the chat every 3 s, the others every 15 s
+let ticks = 0, polling = false;
+setInterval(async () => {
+  ticks += 1;
+  if (!state.doc || polling || document.hidden || (state.tab !== "chat" && ticks % 5 !== 0)) return;
+  polling = true;
+  try { await refreshTab(true); } finally { polling = false; }
+}, 3000);
+</script>
+</body>
+</html>

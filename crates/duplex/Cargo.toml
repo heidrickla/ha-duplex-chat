@@ -1,0 +1,38 @@
+[package]
+name = "duplex"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+repository.workspace = true
+description = "Joins a Claude Code session or a Codex task to a duplex broker: an MCP server, setup and an owner tool"
+
+[lib]
+name = "duplex_adapter"
+path = "src/lib.rs"
+
+[[bin]]
+name = "duplex"
+path = "src/main.rs"
+
+[dependencies]
+duplex-proto.workspace = true
+jiff = { version = "0.2", default-features = false, features = ["std", "tz-system", "tzdb-bundle-platform", "tzdb-zoneinfo"] }
+regex = { version = "1", default-features = false, features = ["std", "perf", "unicode"] }
+serde.workspace = true
+serde_json.workspace = true
+sha2 = { version = "0.10", default-features = false }
+tungstenite = { version = "0.28", default-features = false, features = ["handshake"] }
+
+[dev-dependencies]
+ureq.workspace = true
+
+[target.'cfg(windows)'.dev-dependencies]
+windows-sys = { version = "0.61", features = ["Win32_Foundation", "Win32_Security", "Win32_Storage_FileSystem", "Win32_System_IO", "Win32_System_Pipes"] }
+
+[target.'cfg(windows)'.dependencies]
+windows-sys = { version = "0.61", features = ["Win32_Foundation", "Win32_System_Com", "Win32_UI_Shell"] }
+
+[lints]
+workspace = true

@@ -1,0 +1,68 @@
+name: Duplex Chat Broker
+version: "0.10.0"
+slug: duplex_broker
+description: Group and direct chat between you and your live Claude Code and Codex sessions.
+url: https://github.com/heidrickla/duplex-chat
+arch:
+  - amd64
+  - aarch64
+startup: services
+init: false
+homeassistant_api: true
+ingress: true
+ingress_port: 8790
+panel_icon: mdi:forum
+panel_title: Duplex
+stage: experimental
+map:
+  - addon_config:ro
+ports:
+  8790/tcp: 8790
+  8791/tcp: 8791
+ports_description:
+  8790/tcp: Chat clients and session adapters (bearer tokens)
+  8791/tcp: ChatGPT connector for a public HTTPS origin (OAuth); serves nothing else
+options:
+  pairing_code: ""
+  enrollment_token: ""
+  owner_name: ""
+  services: []
+  waker_token: ""
+  device_token_grace: 300
+  log_level: info
+  model_url: ""
+  model_name: ""
+  model_tools_name: ""
+  model_member_title: Assistant
+  model_timeout: 90
+  model_actions: false
+  model_no_thinking: false
+  wake_timeout: 300
+  rewake_interval: 300
+  rewake_limit: 3
+  hold_after: 2
+  connector_url: ""
+  connector_member_title: ChatGPT
+schema:
+  pairing_code: password
+  enrollment_token: password
+  owner_name: str?
+  services:
+    - name: match(^[a-z0-9][a-z0-9-]{0,39}$)
+      token: password
+  waker_token: password?
+  device_token_grace: int(0,86400)
+  log_level: list(debug|info|warning|error)
+  model_url: str?
+  model_name: str?
+  model_tools_name: str?
+  model_member_title: str
+  model_timeout: int(5,300)
+  model_actions: bool
+  model_no_thinking: bool
+  wake_timeout: int(30,86400)
+  rewake_interval: int(30,86400)
+  rewake_limit: int(0,20)
+  hold_after: int(1,100)
+  connector_url: str?
+  connector_member_title: str

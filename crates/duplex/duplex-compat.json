@@ -1,0 +1,14 @@
+{
+  "built_against": {
+    "claude_code": {
+      "version": "2.1.321",
+      "reviewed": "2026-11-11",
+      "notes": "Wakes through the cross-session inbox (CLAUDE_CODE_MESSAGING_SOCKET); turn state from the session record's status and waitingFor, limits from the transcript; 2.1.243 closes an inbox connection that sends no complete line in 30 s; 2.1.288 reports held messages as not delivered."
+    },
+    "codex": {
+      "version": "0.167.1",
+      "reviewed": "2026-11-11",
+      "notes": "Wakes with codex queue --resume and the app-server daemon; one writer per thread; turn state and limits from the rollout (task_started, task_complete, turn_aborted, token_count); 0.167.0 and 0.167.1 leave the queue, app-server and rollout events unchanged."
+    }
+  }
+}

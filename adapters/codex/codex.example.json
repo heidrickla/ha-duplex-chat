@@ -1,0 +1,5 @@
+{
+  "threads": [
+    {"title": "Codex example", "cwd": "/path/to/project"}
+  ]
+}

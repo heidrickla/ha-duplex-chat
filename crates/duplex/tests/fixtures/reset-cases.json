@@ -1,0 +1,269 @@
+{
+ "_source": "Golden cases for reading a usage-limit reset time out of a Claude Code transcript line or a Codex rollout message. `refused` marks a text that names a time that cannot be known; the instant is null for both a refusal and no instant.",
+ "cases": [
+  {
+   "name": "clock time with a zone is the next such instant",
+   "runtime": "claude",
+   "text": "You've hit your session limit · resets 8pm (America/Chicago)",
+   "failed": "2026-09-04T22:27:41Z",
+   "local": "America/Chicago",
+   "at": "2026-09-05T01:00:00Z"
+  },
+  {
+   "name": "clock time already past today means tomorrow",
+   "runtime": "claude",
+   "text": "resets 8pm (America/Chicago)",
+   "failed": "2026-09-05T02:30:00Z",
+   "local": "America/Chicago",
+   "at": "2026-09-06T01:00:00Z"
+  },
+  {
+   "name": "dated reset uses the offset of its own date (CDT)",
+   "runtime": "claude",
+   "text": "resets Oct 30, 4:59pm (America/Chicago)",
+   "failed": "2026-10-29T12:00:00Z",
+   "local": "America/Chicago",
+   "at": "2026-10-30T21:59:00Z"
+  },
+  {
+   "name": "dated reset uses the offset of its own date (CST)",
+   "runtime": "claude",
+   "text": "resets Nov 2, 4:59pm (America/Chicago)",
+   "failed": "2026-10-29T12:00:00Z",
+   "local": "America/Chicago",
+   "at": "2026-11-02T22:59:00Z"
+  },
+  {
+   "name": "dated reset in the new year rolls over",
+   "runtime": "claude",
+   "text": "resets Jan 2, 3am (America/Chicago)",
+   "failed": "2026-12-31T20:00:00Z",
+   "local": "America/Chicago",
+   "at": "2027-01-02T09:00:00Z"
+  },
+  {
+   "name": "weekday reset is the next such day, zone assumed local",
+   "runtime": "claude",
+   "text": "You've hit your weekly limit · resets Mon 12:00am",
+   "failed": "2026-11-11T12:00:00Z",
+   "local": "America/Chicago",
+   "at": "2026-11-16T06:00:00Z"
+  },
+  {
+   "name": "no zone is read in the local zone",
+   "runtime": "claude",
+   "text": "resets 3:45pm",
+   "failed": "2026-11-11T12:00:00Z",
+   "local": "America/Chicago",
+   "at": "2026-11-11T21:45:00Z"
+  },
+  {
+   "name": "12am is midnight",
+   "runtime": "claude",
+   "text": "resets 12am (UTC)",
+   "failed": "2026-11-11T12:00:00Z",
+   "local": "America/Chicago",
+   "at": "2026-11-12T00:00:00Z"
+  },
+  {
+   "name": "12pm is noon",
+   "runtime": "claude",
+   "text": "resets 12pm (UTC)",
+   "failed": "2026-11-11T06:00:00Z",
+   "local": "America/Chicago",
+   "at": "2026-11-11T12:00:00Z"
+  },
+  {
+   "name": "repeated hour, failed 2026-11-01T05:00:00Z",
+   "runtime": "claude",
+   "text": "resets 1:30am (America/Chicago)",
+   "failed": "2026-11-01T05:00:00Z",
+   "local": "America/Chicago",
+   "at": "2026-11-01T06:30:00Z"
+  },
+  {
+   "name": "repeated hour, failed 2026-11-01T06:29:59Z",
+   "runtime": "claude",
+   "text": "resets 1:30am (America/Chicago)",
+   "failed": "2026-11-01T06:29:59Z",
+   "local": "America/Chicago",
+   "at": "2026-11-01T06:30:00Z"
+  },
+  {
+   "name": "repeated hour, failed 2026-11-01T06:45:00Z",
+   "runtime": "claude",
+   "text": "resets 1:30am (America/Chicago)",
+   "failed": "2026-11-01T06:45:00Z",
+   "local": "America/Chicago",
+   "at": "2026-11-01T07:30:00Z"
+  },
+  {
+   "name": "repeated hour, failed 2026-11-01T07:29:59Z",
+   "runtime": "claude",
+   "text": "resets 1:30am (America/Chicago)",
+   "failed": "2026-11-01T07:29:59Z",
+   "local": "America/Chicago",
+   "at": "2026-11-01T07:30:00Z"
+  },
+  {
+   "name": "repeated hour, failed 2026-11-01T07:31:00Z",
+   "runtime": "claude",
+   "text": "resets 1:30am (America/Chicago)",
+   "failed": "2026-11-01T07:31:00Z",
+   "local": "America/Chicago",
+   "at": "2026-11-02T07:30:00Z"
+  },
+  {
+   "name": "repeated hour in a dated reset takes the second fold",
+   "runtime": "claude",
+   "text": "resets Nov 1, 1:30am (America/Chicago)",
+   "failed": "2026-11-01T06:45:00Z",
+   "local": "America/Chicago",
+   "at": "2026-11-01T07:30:00Z"
+  },
+  {
+   "name": "repeated hour: failure at 01:45 CDT resets at 01:30 CST, not next year",
+   "runtime": "claude",
+   "text": "resets Nov 1, 1:30am (America/Chicago)",
+   "failed": "2026-11-01T06:45:00Z",
+   "local": "America/Chicago",
+   "at": "2026-11-01T07:30:00Z"
+  },
+  {
+   "name": "skipped hour is refused (time only)",
+   "runtime": "claude",
+   "text": "resets 2:30am (America/Chicago)",
+   "failed": "2026-03-08T07:30:00Z",
+   "local": "America/Chicago",
+   "at": null,
+   "refused": true
+  },
+  {
+   "name": "skipped hour is refused (dated)",
+   "runtime": "claude",
+   "text": "resets Mar 8, 2:30am (America/Chicago)",
+   "failed": "2026-03-08T00:00:00Z",
+   "local": "America/Chicago",
+   "at": null,
+   "refused": true
+  },
+  {
+   "name": "after a skipped time that already passed, the next day stands",
+   "runtime": "claude",
+   "text": "resets 2:30am (America/Chicago)",
+   "failed": "2026-03-08T09:00:00Z",
+   "local": "America/Chicago",
+   "at": "2026-03-09T07:30:00Z"
+  },
+  {
+   "name": "no reset time in the text",
+   "runtime": "claude",
+   "text": "API Error: Rate limit reached",
+   "failed": "2026-11-11T12:00:00Z",
+   "local": "America/Chicago",
+   "at": null
+  },
+  {
+   "name": "unknown zone is refused",
+   "runtime": "claude",
+   "text": "resets 8pm (Mars/Olympus)",
+   "failed": "2026-11-11T12:00:00Z",
+   "local": "America/Chicago",
+   "at": null,
+   "refused": true
+  },
+  {
+   "name": "impossible clock is refused",
+   "runtime": "claude",
+   "text": "resets 13pm (UTC)",
+   "failed": "2026-11-11T12:00:00Z",
+   "local": "America/Chicago",
+   "at": null,
+   "refused": true
+  },
+  {
+   "name": "impossible date is refused",
+   "runtime": "claude",
+   "text": "resets Feb 30, 8pm (UTC)",
+   "failed": "2026-11-11T12:00:00Z",
+   "local": "America/Chicago",
+   "at": null,
+   "refused": true
+  },
+  {
+   "name": "codex message time is local time",
+   "runtime": "codex",
+   "text": "You’ve hit your usage limit. Visit https://chatgpt.com/codex/settings/usage to purchase more credits or try again at Oct 13th, 2026 10:58 PM.",
+   "failed": "2026-10-10T00:01:35Z",
+   "local": "America/Chicago",
+   "at": "2026-10-14T03:58:00Z"
+  },
+  {
+   "name": "codex message time in another local zone",
+   "runtime": "codex",
+   "text": "You’ve hit your usage limit. Visit https://chatgpt.com/codex/settings/usage to purchase more credits or try again at Oct 13th, 2026 10:58 PM.",
+   "failed": "2026-10-10T00:01:35Z",
+   "local": "UTC",
+   "at": "2026-10-13T22:58:00Z"
+  },
+  {
+   "name": "codex repeated hour, first fold",
+   "runtime": "codex",
+   "text": "try again at Nov 1st, 2026 1:30 AM.",
+   "failed": "2026-11-01T05:00:00Z",
+   "local": "America/Chicago",
+   "at": "2026-11-01T06:30:00Z"
+  },
+  {
+   "name": "codex repeated hour, second fold",
+   "runtime": "codex",
+   "text": "try again at Nov 1st, 2026 1:30 AM.",
+   "failed": "2026-11-01T06:45:00Z",
+   "local": "America/Chicago",
+   "at": "2026-11-01T07:30:00Z"
+  },
+  {
+   "name": "codex repeated hour, both folds past: no instant",
+   "runtime": "codex",
+   "text": "try again at Nov 1st, 2026 1:30 AM.",
+   "failed": "2026-11-01T09:00:00Z",
+   "local": "America/Chicago",
+   "at": null
+  },
+  {
+   "name": "codex skipped hour is refused",
+   "runtime": "codex",
+   "text": "try again at Mar 8th, 2026 2:30 AM.",
+   "failed": "2026-03-08T00:00:00Z",
+   "local": "America/Chicago",
+   "at": null,
+   "refused": true
+  },
+  {
+   "name": "codex text without a time",
+   "runtime": "codex",
+   "text": "You've hit your usage limit.",
+   "failed": "2026-11-11T12:00:00Z",
+   "local": "America/Chicago",
+   "at": null
+  },
+  {
+   "name": "codex hour past 12 with AM is refused",
+   "runtime": "codex",
+   "text": "try again at Oct 30th, 2026 13:30 AM.",
+   "failed": "2026-10-29T12:00:00Z",
+   "local": "America/Chicago",
+   "at": null,
+   "refused": true
+  },
+  {
+   "name": "codex hour 0 with AM is refused",
+   "runtime": "codex",
+   "text": "try again at Oct 30th, 2026 0:30 AM.",
+   "failed": "2026-10-29T12:00:00Z",
+   "local": "America/Chicago",
+   "at": null,
+   "refused": true
+  }
+ ]
+}

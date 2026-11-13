@@ -1,0 +1,42 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "duplex-broker"
+version = "0.10.0"
+description = "Conversation broker for duplex-chat: group and direct chat with live Claude Code and Codex sessions"
+requires-python = ">=3.12"
+license = "MIT"
+dependencies = [
+    "fastapi==0.141.1",
+    "uvicorn==0.53.0",
+    "websockets==17.1",
+]
+
+[project.optional-dependencies]
+test = [
+    "httpx2==2.13.1",
+    "pytest>=8.3",
+    "mypy>=1.18",
+    "ruff>=0.14",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/duplex_broker"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+filterwarnings = ["error"]
+
+[tool.mypy]
+strict = true
+python_version = "3.12"
+files = ["src", "tests"]
+
+[tool.ruff]
+line-length = 110
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM", "RUF"]

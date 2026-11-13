@@ -1,0 +1,1 @@
+{"runtime": "codex", "version": "0.167.1", "source": "~/.codex/sessions/YYYY/MM/DD/rollout-*-<thread id>.jsonl", "constructed": true, "note": "Synthetic: a task_started and the turn_aborted that ends it."}

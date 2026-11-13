@@ -1,0 +1,1 @@
+{"runtime": "claude", "version": "2.1.321", "source": "~/.claude/sessions/<pid>.json", "constructed": true, "note": "Synthetic session record with the keys the reader uses; the other three records in this folder change only status and waitingFor."}

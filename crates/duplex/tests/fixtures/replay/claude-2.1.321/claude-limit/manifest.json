@@ -1,0 +1,1 @@
+{"runtime": "claude", "version": "2.1.321", "source": "~/.claude/projects/<cwd slug>/<session id>.jsonl", "constructed": true, "note": "Synthetic: the line shapes the reader uses (limit line with quotaLimits.resetsAt and reset text, tool result, typed prompt), with example ids and paths."}
