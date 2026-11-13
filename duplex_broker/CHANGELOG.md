@@ -1,3 +1,7 @@
+## 0.10.1
+
+- A database from before schema 13 that never opened a broker-notices conversation adopts its owner from its first group, or from whoever owns the most conversations, so the owner's conversations stay listed after the upgrade.
+
 ## 0.10.0
 
 First public release.

@@ -1,5 +1,5 @@
 name: Duplex Chat Broker
-version: "0.10.0"
+version: "0.10.1"
 slug: duplex_broker
 description: Group and direct chat between you and your live Claude Code and Codex sessions.
 url: https://github.com/heidrickla/ha-duplex-chat

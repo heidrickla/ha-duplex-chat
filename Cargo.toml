@@ -3,7 +3,7 @@ members = ["crates/*"]
 resolver = "3"
 
 [workspace.package]
-version = "0.10.0"
+version = "0.10.1"
 edition = "2024"
 rust-version = "1.98"
 license = "MIT"
@@ -15,7 +15,7 @@ serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1", features = ["preserve_order"] }
 # Plain HTTP to the broker on the LAN; no TLS stack.
 ureq = { version = "3.5", default-features = false, features = ["json"] }
-duplex-proto = { version = "0.10.0", path = "crates/duplex-proto" }
+duplex-proto = { version = "0.10.1", path = "crates/duplex-proto" }
 
 [workspace.lints.rust]
 unsafe_op_in_unsafe_fn = "deny"
