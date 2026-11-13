@@ -255,7 +255,7 @@ class AdapterIn(BaseModel):
 
 
 class RegisterIn(BaseModel):
-    provider: Literal["claude", "codex", "mock"]  # "model" is the broker's own member
+    provider: Literal["claude", "codex", "opencode", "mock"]  # "model" is the broker's own member
     native_id: str = Field(min_length=1, max_length=500)
     title: str = Field(min_length=1, max_length=200)
     workspace: str = Field(max_length=1000)

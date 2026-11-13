@@ -320,7 +320,7 @@ def _withdraw_open(
 def _resolve_assignee(store: Store, db: sqlite3.Connection, requester: Binding, to: str) -> Binding:
     found = match_sessions([b for b in store._active_bindings(db) if b.provider in ADAPTER_PROVIDERS], to)
     if not found:
-        raise Invalid(f"no active claude or codex session is named {to!r}")
+        raise Invalid(f"no active claude, codex or opencode session is named {to!r}")
     if len(found) > 1:
         raise Invalid(f"{to!r} names {len(found)} active sessions; use a session id")
     if found[0].id == requester.id:
@@ -340,7 +340,7 @@ def create_task(
     """Delegate a task: its conversation, its row and the assigned notice, in one transaction. A send mode
     the assignee cannot take refuses the whole task."""
     if requester.provider not in ADAPTER_PROVIDERS:
-        raise Forbidden("only a claude or codex session delegates a task")
+        raise Forbidden("only a claude, codex or opencode session delegates a task")
     with store._write() as db:
         assignee = _resolve_assignee(store, db, requester, to)
         # The result and every answer come back to the requester, so it must take task notices too.

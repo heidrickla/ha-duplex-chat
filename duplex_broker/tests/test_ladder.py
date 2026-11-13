@@ -383,7 +383,7 @@ def test_a_version_5_database_upgrades(tmp_path: Path) -> None:
     record_wake(store, "d1", "b1", 1, 1, True, None)
     store.close()
     check = sqlite3.connect(path)
-    assert check.execute("SELECT version FROM schema_version").fetchone()[0] == SCHEMA_VERSION == 13
+    assert check.execute("SELECT version FROM schema_version").fetchone()[0] == SCHEMA_VERSION == 14
     assert check.execute("PRAGMA integrity_check").fetchone()[0] == "ok"
     assert check.execute("PRAGMA foreign_key_check").fetchall() == []
     assert check.execute("SELECT text FROM messages").fetchone()[0] == "old"

@@ -67,7 +67,7 @@ def test_a_schema_11_database_upgrades_in_place(tmp_path: Path, monkeypatch: pyt
 
     check = sqlite3.connect(path)
     assert check.execute("SELECT version FROM schema_version").fetchone()[0] == store_module.SCHEMA_VERSION
-    assert store_module.SCHEMA_VERSION == 13
+    assert store_module.SCHEMA_VERSION == 14
     assert check.execute("PRAGMA integrity_check").fetchone()[0] == "ok"
     assert check.execute("PRAGMA foreign_key_check").fetchall() == []
     counts = {t: check.execute(f"SELECT COUNT(*) FROM {t}").fetchone()[0] for t in TABLES}

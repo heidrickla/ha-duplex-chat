@@ -40,7 +40,7 @@ def test_health_reports_the_version_and_schema_and_is_not_ready_until_the_listen
 
 
 def test_the_schema_reported_is_the_databases_own(store: Store) -> None:
-    assert store.schema == SCHEMA_VERSION == 13
+    assert store.schema == SCHEMA_VERSION == 14
 
 
 class Noted(Listener):

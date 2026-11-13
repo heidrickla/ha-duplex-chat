@@ -26,7 +26,7 @@ from .ids import reply_id
 
 Kind = Literal["group", "direct"]
 Mode = Literal["user_directed", "consult", "collaborate"]
-Provider = Literal["claude", "codex", "mock", "model", "broker", "chatgpt"]
+Provider = Literal["claude", "codex", "mock", "model", "broker", "chatgpt", "opencode"]
 ActorKind = Literal["user", "binding"]
 DeliveryState = Literal[
     "queued", "dispatching", "accepted", "consumed", "responded", "cancelled", "failed", "uncertain"
@@ -84,7 +84,7 @@ ENVELOPE = ("from", "to", "sent_at", "notice")
 BROKER_BINDING_ID = "broker"
 BROKER_TITLE = "Duplex broker"
 
-SCHEMA_VERSION = 13
+SCHEMA_VERSION = 14
 SCHEMA = """
 CREATE TABLE session_bindings (
   id TEXT PRIMARY KEY,
@@ -405,6 +405,10 @@ CREATE TABLE meta (
 );
 """
 V13_PROVIDERS = "('claude', 'codex', 'mock', 'model', 'broker', 'chatgpt')"
+# Version 14: provider 'opencode', an OpenCode session the `duplex opencode` adapter holds, widened like
+# version 5. No table or row changes.
+SCHEMA_V14 = ""
+V14_PROVIDERS = "('claude', 'codex', 'mock', 'model', 'broker', 'chatgpt', 'opencode')"
 REFUSAL_TTL = 24 * 3600.0
 REFUSAL_CAP = 1000
 WIDEN = {
@@ -412,6 +416,7 @@ WIDEN = {
     6: (NEW_PROVIDERS, V6_PROVIDERS),
     7: (V6_PROVIDERS, V7_PROVIDERS),
     13: (V7_PROVIDERS, V13_PROVIDERS),
+    14: (V13_PROVIDERS, V14_PROVIDERS),
 }
 
 MIGRATIONS = {
@@ -428,6 +433,7 @@ MIGRATIONS = {
     11: SCHEMA_V11,
     12: SCHEMA_V12,
     13: SCHEMA_V13,
+    14: SCHEMA_V14,
 }
 # Steps that rewrite existing rows after their schema change: the Store method to run.
 REWRITES = {10: "_add_envelopes", 13: "_adopt_owner_and_model"}
@@ -681,7 +687,7 @@ def _token_sha(token: str) -> str:
 
 # The providers whose bindings run the session adapter, and so report a version. The ChatGPT connector,
 # the model member and the broker's own member are built in and have none.
-ADAPTER_PROVIDERS = ("claude", "codex")
+ADAPTER_PROVIDERS = ("claude", "codex", "opencode")
 
 
 def version_key(version: str) -> tuple[int, ...]:

@@ -164,7 +164,7 @@ A session asks another to do a piece of work and gets a result back. Each task h
 
 | Adapter route (binding token) | Body | Who | Answer |
 |---|---|---|---|
-| `POST /api/adapter/tasks` | `to` (session id or exact title), `task` (1 to 20000), `done_when` (1 to 2000), `parent_task_id`?, `mode`? | a claude or codex session | 201 task view |
+| `POST /api/adapter/tasks` | `to` (session id or exact title), `task` (1 to 20000), `done_when` (1 to 2000), `parent_task_id`?, `mode`? | a claude, codex or opencode session | 201 task view |
 | `GET /api/adapter/tasks` | query `role` requester, assignee or both; `open` 1 (default) or 0 | own tasks | list |
 | `GET /api/adapter/tasks/{id}` | | requester or assignee | view with children, open questions, `event_count`, and the result once ended |
 | `POST /api/adapter/tasks/{id}/cancel` | `reason`? | requester | view |
@@ -177,7 +177,7 @@ IDs are shown hyphenated and accepted either way. A task is `working`, `waiting_
 
 | Rule | How |
 |---|---|
-| Who | Requester and assignee are different active claude or codex sessions, and both adapters declare `capabilities.tasks: true` (they have the task tools); otherwise 422 `tasks_unsupported` names the session and creates nothing. A session that later registers without `tasks` is sent no further task notice: each one is refused at admission and the task records `notice_refused`. Of the task notices, only `assigned` is a lifecycle transition: a refused assignment ends the task `failed` with the reason (`The assignment could not be delivered: ...`) and the requester gets the ordinary result notice. A refused result, question, answer, cancelled or nudge notice is only recorded, because its data stays readable through task status. `to` is a session id (stored or displayed form) or an exact title; a name that is one session's id and another's title is refused as ambiguous. A child names `parent_task_id`, and only that parent's assignee creates it while the parent is `working`. A send mode the assignee cannot take refuses the whole task. |
+| Who | Requester and assignee are different active claude, codex or opencode sessions, and both adapters declare `capabilities.tasks: true` (they have the task tools); otherwise 422 `tasks_unsupported` names the session and creates nothing. A session that later registers without `tasks` is sent no further task notice: each one is refused at admission and the task records `notice_refused`. Of the task notices, only `assigned` is a lifecycle transition: a refused assignment ends the task `failed` with the reason (`The assignment could not be delivered: ...`) and the requester gets the ordinary result notice. A refused result, question, answer, cancelled or nudge notice is only recorded, because its data stays readable through task status. `to` is a session id (stored or displayed form) or an exact title; a name that is one session's id and another's title is refused as ambiguous. A child names `parent_task_id`, and only that parent's assignee creates it while the parent is `working`. A send mode the assignee cannot take refuses the whole task. |
 | Report | With no live child the task becomes `result_available` or `failed`, and the requester gets the result notice. With live children the result is held, status `waiting_for_children`, and released the same way when the last live child ends (reported, failed or cancelled). A second report is 409. |
 | Reading | The requester's first `GET` of an ended task sets `delivered_at` and returns the result. Until then the result notice follows the ladder like any message. |
 | Cancel | The requester or the owner cancels a task and every live task below it. Each assignee gets the cancelled notice; queued deliveries of that task's earlier notices to it are cancelled; open questions are withdrawn. An ended task is 409. |
@@ -240,7 +240,7 @@ Only the broker writes `ran:` and `tool:` lines. With actions on, each earlier `
 
 ## Owner id
 
-The broker keeps the owner's id in a `meta` row of its database (schema 13). A fresh database uses `owner`. A database from before schema 13 adopts the owner of the broker-notices conversation, so every conversation, membership and delivery stays visible to the same owner; the owner's display name is the `owner_name` option, not the id.
+The broker keeps the owner's id in a `meta` row of its database (schema 13 and later). A fresh database uses `owner`. A database from before schema 13 adopts the owner of the broker-notices conversation, so every conversation, membership and delivery stays visible to the same owner; the owner's display name is the `owner_name` option, not the id.
 
 ## Group modes
 

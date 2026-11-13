@@ -747,7 +747,7 @@ function sessionRow(s) {
   const who = html("div", null, "who");
   who.appendChild(html("div", s.title, "title"));
   who.appendChild(html("div", (SENDER[s.provider] ? SENDER[s.provider][2] : s.provider) + (s.workspace ? " · " + s.workspace : ""), "ws"));
-  if (s.active && ["claude", "codex", "mock"].includes(s.provider)) {
+  if (s.active && ["claude", "codex", "opencode", "mock"].includes(s.provider)) {
     const acts = html("div", null, "row");
     acts.appendChild(button("Release", () => sessionAction("release", s), "small"));
     acts.appendChild(button("Retire", () => sessionAction("retire", s), "small danger"));
@@ -1148,7 +1148,7 @@ function sessionById(id) {
   return chat.sessions.find((s) => s.id === id) || (state.doc && state.doc.sessions.find((s) => s.id === id)) || null;
 }
 function sessionTitle(id) { const s = sessionById(id); return s ? s.title : String(id).slice(0, 8); }
-function pickable() { return chat.sessions.filter((s) => s.active && ["claude", "codex", "mock", "model", "chatgpt"].includes(s.provider)); }
+function pickable() { return chat.sessions.filter((s) => s.active && ["claude", "codex", "opencode", "mock", "model", "chatgpt"].includes(s.provider)); }
 function sendModesOf(s) {
   const m = s && s.capabilities && s.capabilities.send_modes;
   return Array.isArray(m) && m.includes("auto") ? m : ["auto"];
