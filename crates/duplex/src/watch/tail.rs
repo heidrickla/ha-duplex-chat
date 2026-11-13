@@ -41,16 +41,30 @@ pub struct Read {
 struct Identity(u64, u64);
 
 fn identity_of(path: &Path) -> io::Result<Identity> {
-    let meta = std::fs::metadata(path)?;
     #[cfg(unix)]
     {
+        let meta = std::fs::metadata(path)?;
         use std::os::unix::fs::MetadataExt;
         Ok(Identity(meta.dev(), meta.ino()))
     }
     #[cfg(windows)]
     {
-        use std::os::windows::fs::MetadataExt;
-        Ok(Identity(0, meta.creation_time()))
+        // The volume serial and file index: a creation time is shared by files made in one
+        // clock tick, and NTFS hands a recreated name its old one.
+        use std::os::windows::io::AsRawHandle;
+        use windows_sys::Win32::Storage::FileSystem::{
+            BY_HANDLE_FILE_INFORMATION, GetFileInformationByHandle,
+        };
+        let file = std::fs::File::open(path)?;
+        let mut info: BY_HANDLE_FILE_INFORMATION = unsafe { std::mem::zeroed() };
+        // SAFETY: the handle is open for the call and `info` is a valid place to write.
+        if unsafe { GetFileInformationByHandle(file.as_raw_handle(), &raw mut info) } == 0 {
+            return Err(io::Error::last_os_error());
+        }
+        Ok(Identity(
+            u64::from(info.dwVolumeSerialNumber),
+            (u64::from(info.nFileIndexHigh) << 32) | u64::from(info.nFileIndexLow),
+        ))
     }
 }
 
@@ -439,6 +453,21 @@ mod tests {
             [false, true],
             "the old file's tail is not replayed, the new file is"
         );
+    }
+
+    #[test]
+    fn a_new_file_under_the_name_of_one_moved_away_is_read_from_its_start() {
+        let scratch = Scratch::new();
+        let path = scratch.0.join("t.jsonl");
+        append(&path, "{\"n\":0}\n");
+        let mut tail = follow(&path);
+        tail.begin(0);
+        // Longer than the old file, so only its identity tells the two apart.
+        std::fs::rename(&path, scratch.0.join("old.jsonl")).unwrap();
+        append(&path, "{\"n\":5}\n{\"n\":6}\n");
+        let reads = tail.poll();
+        assert_eq!(texts(&reads), ["5", "6"]);
+        assert!(reads.iter().all(|r| r.replayed));
     }
 
     #[test]
